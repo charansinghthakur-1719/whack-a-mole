@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Whac-A-Mole // Arcade Cabinet Edition</title>
-  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Fredoka:wght@600;700&family=Orbitron:wght@800;900&display=swap" rel="stylesheet">
+  <title>WHAC-A-MOLE // OVERDRIVE ARCADE</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Fredoka:wght@600;700;800&family=Orbitron:wght@800;900&display=swap" rel="stylesheet">
   <style>
     * {
       box-sizing: border-box;
@@ -18,86 +18,124 @@
       width: 100vw;
       height: 100vh;
       overflow: hidden;
-      background: #0d131a;
+      background: #070a0f;
       font-family: 'Fredoka', sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
-      cursor: none; /* Hide default cursor so custom 3D mallet takes over */
+      cursor: none;
     }
 
-    /* Dark Industrial Wall Background (From Sample Image) */
+    /* Fullscreen Particle & Shockwave Canvas */
+    #fx-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 150;
+    }
+
+    /* Screen Flash Overlay (TNT Blast / Fever Trigger) */
+    #screen-flash {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 140;
+      opacity: 0;
+      transition: opacity 0.08s ease-out;
+    }
+
+    /* Dark Industrial Arcade Room Background */
     .arcade-room {
       position: fixed;
       inset: 0;
       background:
-        radial-gradient(circle at 50% 25%, rgba(56, 189, 248, 0.08) 0%, transparent 60%),
-        linear-gradient(180deg, #0f1722 0%, #16202c 48%, #0e4f5c 49%, #0b343d 53%, #121a24 54%, #090d12 100%);
+        radial-gradient(circle at 50% 20%, rgba(56, 189, 248, 0.14) 0%, transparent 65%),
+        linear-gradient(180deg, #0b111a 0%, #141e2b 48%, #0e4f5c 49%, #093038 53%, #0e151f 54%, #06090e 100%);
       z-index: 0;
+      transition: filter 0.3s ease;
     }
 
-    /* Architectural Wall Panels */
-    .arcade-room::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background-image: 
-        linear-gradient(90deg, rgba(0,0,0,0.6) 4px, transparent 4px),
-        linear-gradient(0deg, rgba(255,255,255,0.03) 2px, transparent 2px);
-      background-size: 220px 100%, 100% 180px;
-      pointer-events: none;
+    .arcade-room.fever-bg {
+      background:
+        radial-gradient(circle at 50% 25%, rgba(244, 63, 94, 0.28) 0%, rgba(250, 204, 21, 0.12) 45%, transparent 75%),
+        linear-gradient(180deg, #1a0b16 0%, #2b1422 48%, #701a75 49%, #4a044e 53%, #15091e 54%, #06040a 100%);
+    }
+
+    /* Hit-Stop Freeze Frame State */
+    body.hit-stop * {
+      animation-play-state: paused !important;
+      transition: none !important;
     }
 
     /* Main Arcade Machine Cabinet */
     .cabinet-machine {
       position: relative;
-      z-index: 2;
+      z-index: 10;
       width: 95vw;
-      max-width: 900px;
-      background: linear-gradient(180deg, #5c3a21 0%, #3d2514 100%);
-      border: 6px solid #1e1108;
+      max-width: 920px;
+      background: linear-gradient(180deg, #5c3a21 0%, #382110 100%);
+      border: 6px solid #1a0e06;
       border-radius: 28px 28px 18px 18px;
       box-shadow:
-        0 35px 90px rgba(0,0,0,0.95),
-        inset 0 2px 6px rgba(255, 255, 255, 0.2),
-        inset 0 -12px 25px rgba(0,0,0,0.8);
-      padding: 18px 24px 26px;
+        0 35px 95px rgba(0,0,0,0.95),
+        inset 0 2px 6px rgba(255, 255, 255, 0.22),
+        inset 0 -12px 25px rgba(0,0,0,0.85);
+      padding: 16px 24px 24px;
       display: flex;
       flex-direction: column;
       align-items: center;
+      will-change: transform;
     }
 
-    /* Top Wooden Header Housing */
+    .cabinet-machine.fever-mode {
+      border-color: #facc15;
+      box-shadow:
+        0 0 45px rgba(250, 204, 21, 0.55),
+        0 0 90px rgba(244, 63, 94, 0.35),
+        inset 0 0 25px rgba(250, 204, 21, 0.35);
+    }
+
+    /* Top Scoreboard Housing */
     .marquee-housing {
       width: 100%;
-      background: linear-gradient(180deg, #472b16 0%, #2b190c 100%);
-      border: 4px solid #1a0f07;
+      background: linear-gradient(180deg, #422612 0%, #241409 100%);
+      border: 4px solid #140b04;
       border-radius: 18px;
-      padding: 14px 20px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.7), inset 0 2px 4px rgba(255,255,255,0.12);
-      margin-bottom: 12px;
+      padding: 12px 18px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.75);
+      margin-bottom: 10px;
     }
 
-    /* Digital Scoreboard Display */
     .scoreboard-screen {
-      background: radial-gradient(circle at center, #1b2838 0%, #0a0f18 100%);
+      background: radial-gradient(circle at center, #162231 0%, #070b12 100%);
       border: 3px solid #38bdf8;
       border-radius: 12px;
-      padding: 12px 24px;
+      padding: 10px 18px;
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
+      align-items: center;
       text-align: center;
-      box-shadow:
-        0 0 18px rgba(56, 189, 248, 0.25),
-        inset 0 0 25px rgba(0, 0, 0, 0.9);
-      position: relative;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.25), inset 0 0 25px rgba(0, 0, 0, 0.95);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .scoreboard-screen.red-alert {
+      border-color: #f43f5e;
+      box-shadow: 0 0 28px rgba(244, 63, 94, 0.6), inset 0 0 25px rgba(244, 63, 94, 0.25);
+      animation: alertPulse 0.45s infinite alternate;
+    }
+
+    @keyframes alertPulse {
+      0% { transform: scale(1); }
+      100% { transform: scale(1.012); }
     }
 
     .stat-label {
-      font-family: 'Fredoka', sans-serif;
-      font-size: 0.9rem;
+      font-size: 0.78rem;
       letter-spacing: 0.08em;
-      color: #cbd5e1;
+      color: #94a3b8;
       text-transform: uppercase;
       display: block;
       margin-bottom: 2px;
@@ -105,148 +143,159 @@
 
     .stat-val {
       font-family: 'Orbitron', sans-serif;
-      font-size: 2.5rem;
+      font-size: 2.1rem;
       font-weight: 900;
       color: #ffffff;
       text-shadow: 0 4px 10px rgba(0,0,0,0.8);
     }
 
-    .stat-val.score-yellow {
+    .stat-val.gold {
       color: #facc15;
-      text-shadow: 0 0 15px rgba(250, 204, 21, 0.45), 0 4px 8px rgba(0,0,0,0.9);
+      text-shadow: 0 0 16px rgba(250, 204, 21, 0.55);
     }
 
-    /* Speaker Grilles + Start/SFX Controls Bar */
+    .stat-val.combo-hot {
+      color: #38bdf8;
+      text-shadow: 0 0 16px rgba(56, 189, 248, 0.65);
+    }
+
+    .stat-val.fever-text {
+      color: #f43f5e;
+      text-shadow: 0 0 20px #f43f5e;
+      animation: feverBounce 0.25s infinite alternate;
+    }
+
+    @keyframes feverBounce {
+      from { transform: scale(1); }
+      to { transform: scale(1.14); }
+    }
+
+    /* Speaker & Control Bay */
     .speaker-bay {
-      width: 92%;
+      width: 96%;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 6px 24px 14px;
+      padding: 4px 12px 12px;
     }
 
     .speaker-vent {
-      width: 64px;
-      height: 64px;
+      width: 56px;
+      height: 56px;
       border-radius: 50%;
-      background: repeating-linear-gradient(
-        90deg,
-        #090d14 0px,
-        #090d14 5px,
-        #1e293b 5px,
-        #1e293b 9px
-      );
-      border: 5px solid #1e293b;
-      box-shadow: inset 0 6px 12px rgba(0,0,0,0.9), 0 2px 4px rgba(255,255,255,0.1);
+      background: repeating-linear-gradient(90deg, #070a10 0px, #070a10 5px, #1e293b 5px, #1e293b 9px);
+      border: 4px solid #1e293b;
+      box-shadow: inset 0 6px 12px rgba(0,0,0,0.9);
     }
 
     .arcade-controls {
       display: flex;
-      gap: 14px;
+      gap: 12px;
       align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
     }
 
     .arcade-btn {
       font-family: 'Bangers', cursive;
       letter-spacing: 0.06em;
-      font-size: 1.35rem;
-      padding: 10px 26px;
+      font-size: 1.3rem;
+      padding: 8px 24px;
       border-radius: 50px;
       border: 3px solid #0f172a;
       cursor: pointer;
-      transition: transform 0.1s;
-      box-shadow: 0 6px 0 #0f172a, 0 10px 20px rgba(0,0,0,0.6);
+      transition: transform 0.08s;
+      box-shadow: 0 5px 0 #0f172a, 0 8px 16px rgba(0,0,0,0.6);
     }
 
     .arcade-btn:active {
       transform: translateY(4px);
-      box-shadow: 0 2px 0 #0f172a;
+      box-shadow: 0 1px 0 #0f172a;
     }
 
     .btn-start {
       background: linear-gradient(180deg, #fde047 0%, #eab308 100%);
       color: #0f172a;
+      font-size: 1.45rem;
     }
 
-    .btn-sfx {
+    .btn-toggle {
       background: linear-gradient(180deg, #334155 0%, #1e293b 100%);
       color: #f8fafc;
-      font-size: 1.1rem;
-      padding: 8px 18px;
+      font-size: 1.05rem;
+      padding: 8px 16px;
     }
 
-    /* Metallic Bolted Frame Around Playfield */
+    /* Archetype Legend Pills */
+    .legend-bar {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 10px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #cbd5e1;
+      background: rgba(9, 13, 22, 0.65);
+      padding: 5px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .legend-item span { font-weight: 800; }
+    .leg-troll { color: #a3e635; }
+    .leg-boss { color: #38bdf8; }
+    .leg-jackpot { color: #facc15; }
+    .leg-tnt { color: #f43f5e; }
+
+    /* Metallic Bezel & Grassy Board */
     .playfield-bezel {
       width: 100%;
       background: linear-gradient(180deg, #475569 0%, #1e293b 100%);
       border: 5px solid #0f172a;
       border-radius: 22px;
-      padding: 18px;
+      padding: 16px;
       position: relative;
       box-shadow: inset 0 6px 15px rgba(0,0,0,0.85), 0 8px 20px rgba(0,0,0,0.7);
     }
 
-    /* Corner Rivets */
-    .rivet {
-      position: absolute;
-      width: 14px;
-      height: 14px;
-      background: radial-gradient(circle at 35% 35%, #94a3b8, #1e293b);
-      border: 2px solid #0f172a;
-      border-radius: 50%;
-      z-index: 5;
-    }
-    .rivet.tl { top: 8px; left: 10px; }
-    .rivet.tr { top: 8px; right: 10px; }
-    .rivet.bl { bottom: 8px; left: 10px; }
-    .rivet.br { bottom: 8px; right: 10px; }
-
-    /*Lush Green Grassy Playfield (From Sample Image) */
     .grass-board {
       width: 100%;
-      background:
-        radial-gradient(circle at 50% 40%, #84cc16 0%, #4d7c0f 55%, #365314 100%);
+      background: radial-gradient(circle at 50% 35%, #84cc16 0%, #4d7c0f 58%, #2ec4b600 100%), #365314;
       border: 5px solid #1a2e05;
       border-radius: 14px;
-      padding: 20px 30px 26px;
+      padding: 16px 26px 24px;
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 18px 28px;
-      box-shadow: inset 0 18px 40px rgba(0,0,0,0.65);
+      gap: 14px 26px;
+      box-shadow: inset 0 18px 40px rgba(0,0,0,0.68);
       position: relative;
     }
 
-    /* Individual Hole Wrapper */
+    /* Individual Hole Cell */
     .hole-cell {
       position: relative;
-      height: 135px;
+      height: 132px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: flex-end;
     }
 
-    /* Deep Dirt Pit Shadow */
     .dirt-pit-back {
       position: absolute;
-      bottom: 20px;
+      bottom: 18px;
       width: 88%;
-      height: 54px;
-      background: radial-gradient(ellipse at center, #090502 45%, #271509 85%, #452612 100%);
+      height: 52px;
+      background: radial-gradient(ellipse at center, #060301 48%, #271509 85%, #452612 100%);
       border-radius: 50%;
       border: 5px solid #5c3419;
-      box-shadow:
-        inset 0 12px 20px #000000,
-        0 4px 8px rgba(0,0,0,0.6);
+      box-shadow: inset 0 12px 20px #000000, 0 4px 8px rgba(0,0,0,0.6);
       z-index: 1;
     }
 
-    /* Masking Box so Mole Emerges Cleanly Out of the Pit */
     .mole-stage {
       position: absolute;
-      bottom: 26px;
-      width: 90%;
-      height: 125px;
+      bottom: 24px;
+      width: 92%;
+      height: 128px;
       overflow: hidden;
       display: flex;
       justify-content: center;
@@ -255,55 +304,83 @@
       border-radius: 0 0 46% 46%;
     }
 
-    /* Mole Sprite Container */
     .mole-character {
       width: 118px;
-      height: 118px;
+      height: 120px;
       transform: translateY(115%);
-      transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+      transition: transform 0.19s cubic-bezier(0.22, 1, 0.36, 1);
       position: relative;
       cursor: none;
     }
 
     .mole-character.up {
-      transform: translateY(8%);
+      transform: translateY(6%);
     }
 
-    /* Laughing Animation when you Miss! */
+    .mole-character.boss-hit {
+      animation: armorShudder 0.14s ease-in-out;
+    }
+
+    @keyframes armorShudder {
+      0%, 100% { transform: translateY(6%) translateX(0); filter: brightness(2); }
+      25% { transform: translateY(8%) translateX(-7px) rotate(-4deg); }
+      75% { transform: translateY(8%) translateX(7px) rotate(4deg); }
+    }
+
     .mole-character.laughing {
-      transform: translateY(4%);
-      animation: moleBellyLaugh 0.22s infinite alternate ease-in-out;
+      transform: translateY(2%);
+      animation: moleBellyLaugh 0.18s infinite alternate ease-in-out;
     }
 
     @keyframes moleBellyLaugh {
-      0% { transform: translateY(4%) rotate(-3deg) scale(1.03); }
-      100% { transform: translateY(12%) rotate(3deg) scale(0.97); }
+      0% { transform: translateY(2%) rotate(-4deg) scale(1.04); }
+      100% { transform: translateY(11%) rotate(4deg) scale(0.96); }
     }
 
     .mole-character.whacked {
-      transform: translateY(28%) scale(0.92, 0.76);
-      transition: transform 0.08s ease-out;
+      transform: translateY(32%) scale(1.12, 0.68);
+      transition: transform 0.06s ease-out;
     }
 
-    /* Front Dirt Rim + Gripping Paws */
+    /* Boss HP Bar Above Hole */
+    .boss-hp-bar {
+      position: absolute;
+      top: -6px;
+      display: flex;
+      gap: 4px;
+      z-index: 25;
+      background: #0f172a;
+      padding: 3px 6px;
+      border-radius: 6px;
+      border: 2px solid #f8fafc;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.6);
+    }
+    .boss-hp-bar.hidden { display: none; }
+    .hp-pip {
+      width: 14px;
+      height: 8px;
+      background: #ef4444;
+      border-radius: 2px;
+    }
+    .hp-pip.lost { background: #334155; }
+
     .dirt-rim-front {
       position: absolute;
-      bottom: 16px;
+      bottom: 14px;
       width: 92%;
-      height: 28px;
+      height: 26px;
       border-bottom: 8px solid #5c3419;
       border-radius: 0 0 50% 50%;
       z-index: 3;
       pointer-events: none;
-      filter: drop-shadow(0 4px 3px rgba(0,0,0,0.5));
+      filter: drop-shadow(0 4px 3px rgba(0,0,0,0.55));
     }
 
-    /* Number Tag (#1 - #9) Matching Sample Image */
     .hole-number {
       position: absolute;
       bottom: -8px;
       font-family: 'Bangers', cursive;
-      font-size: 1.35rem;
+      font-size: 1.3rem;
       letter-spacing: 0.06em;
       color: #ffffff;
       -webkit-text-stroke: 1.5px #0f172a;
@@ -312,98 +389,85 @@
       pointer-events: none;
     }
 
-    /* Jagged Comic Book Burst Bubble (From Sample Image) */
+    /* Spiky Comic Taunt Speech Bubble */
     .comic-taunt {
       position: absolute;
-      bottom: 92%;
+      bottom: 94%;
       left: 50%;
       transform: translateX(-50%);
-      width: 230px;
-      z-index: 40;
+      width: 225px;
+      z-index: 50;
       pointer-events: none;
-      animation: comicPopIn 0.28s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
-      filter: drop-shadow(0 10px 18px rgba(0,0,0,0.75));
+      animation: comicPopIn 0.24s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+      filter: drop-shadow(0 10px 18px rgba(0,0,0,0.8));
     }
 
     .comic-taunt-inner {
       background: #ffffff;
       border: 4px solid #0f172a;
-      border-radius: 18px;
-      padding: 10px 14px;
+      border-radius: 16px;
+      padding: 8px 12px;
       text-align: center;
       position: relative;
     }
 
-    /* Jagged Tail Pointing to the Laughing Mole */
     .comic-taunt-inner::after {
       content: '';
       position: absolute;
-      bottom: -16px;
+      bottom: -14px;
       left: 50%;
-      transform: translateX(-50%) rotate(-8deg);
-      border-width: 16px 12px 0;
+      transform: translateX(-50%) rotate(-6deg);
+      border-width: 14px 10px 0;
       border-style: solid;
       border-color: #0f172a transparent;
-    }
-
-    .comic-taunt-inner::before {
-      content: '';
-      position: absolute;
-      bottom: -10px;
-      left: 50%;
-      transform: translateX(-50%) rotate(-8deg);
-      border-width: 12px 9px 0;
-      border-style: solid;
-      border-color: #ffffff transparent;
-      z-index: 2;
     }
 
     .comic-header {
       display: block;
       font-family: 'Bangers', cursive;
-      font-size: 1.35rem;
+      font-size: 1.3rem;
       letter-spacing: 0.05em;
-      color: #f59e0b;
-      -webkit-text-stroke: 1px #0f172a;
-      margin-bottom: 2px;
+      color: #ef4444;
+      -webkit-text-stroke: 0.8px #0f172a;
     }
 
     .comic-body {
-      font-family: 'Fredoka', sans-serif;
-      font-weight: 700;
-      font-size: 0.86rem;
+      font-weight: 800;
+      font-size: 0.82rem;
       line-height: 1.2;
       color: #0f172a;
     }
 
     @keyframes comicPopIn {
-      0% { opacity: 0; transform: translateX(-50%) scale(0.3) rotate(-8deg); }
-      75% { opacity: 1; transform: translateX(-50%) scale(1.06) rotate(2deg); }
+      0% { opacity: 0; transform: translateX(-50%) scale(0.2) rotate(-10deg); }
+      75% { opacity: 1; transform: translateX(-50%) scale(1.08) rotate(2deg); }
       100% { opacity: 1; transform: translateX(-50%) scale(1) rotate(0deg); }
     }
 
-    /* Floating Score Badge (+100) */
+    /* Floating Combat Text (+100, CLANG!, BOOM!) */
     .floating-pts {
       position: absolute;
-      bottom: 85%;
+      bottom: 86%;
       left: 50%;
       transform: translateX(-50%);
       font-family: 'Bangers', cursive;
-      font-size: 2rem;
-      color: #fde047;
-      -webkit-text-stroke: 1.5px #0f172a;
-      text-shadow: 0 4px 8px rgba(0,0,0,0.85);
-      z-index: 35;
+      font-size: 2.2rem;
+      letter-spacing: 0.04em;
+      -webkit-text-stroke: 1.8px #0f172a;
+      text-shadow: 0 5px 10px rgba(0,0,0,0.9);
+      z-index: 45;
       pointer-events: none;
-      animation: floatScoreUp 0.85s ease-out forwards;
+      white-space: nowrap;
+      animation: floatScoreUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
     @keyframes floatScoreUp {
-      0% { opacity: 1; transform: translateX(-50%) translateY(0) scale(0.7); }
-      100% { opacity: 0; transform: translateX(-50%) translateY(-55px) scale(1.15); }
+      0% { opacity: 1; transform: translateX(-50%) translateY(8px) scale(0.5); }
+      35% { opacity: 1; transform: translateX(-50%) translateY(-22px) scale(1.2); }
+      100% { opacity: 0; transform: translateX(-50%) translateY(-60px) scale(0.95); }
     }
 
-    /* 3D Wooden & Red Arcade Mallet Cursor */
+    /* Custom 3D Mallet Cursor */
     #mallet-cursor {
       position: fixed;
       top: 0;
@@ -412,60 +476,59 @@
       height: 135px;
       pointer-events: none;
       z-index: 9999;
-      transform: translate(-35%, -55%) rotate(18deg);
+      transform: translate(-32%, -55%) rotate(22deg);
       transform-origin: 75% 80%;
-      transition: transform 0.06s ease-out;
-      filter: drop-shadow(0 14px 14px rgba(0,0,0,0.65));
+      transition: transform 0.05s ease-out;
+      filter: drop-shadow(0 14px 14px rgba(0,0,0,0.7));
     }
 
     #mallet-cursor.swing {
-      transform: translate(-35%, -45%) rotate(-48deg) scale(0.95);
+      transform: translate(-35%, -40%) rotate(-55deg) scale(1.08);
     }
 
-    /* End of Round Modal */
+    /* Post-Game Summary Modal */
     .modal-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(5, 8, 15, 0.85);
+      background: rgba(5, 8, 15, 0.88);
       display: flex;
       justify-content: center;
       align-items: center;
-      z-index: 200;
-      backdrop-filter: blur(5px);
+      z-index: 300;
+      backdrop-filter: blur(6px);
     }
     .modal-backdrop.hidden { display: none; }
 
     .modal-box {
-      background: linear-gradient(180deg, #472b16 0%, #2b190c 100%);
+      background: linear-gradient(180deg, #472b16 0%, #241409 100%);
       border: 5px solid #facc15;
       border-radius: 24px;
       padding: 30px;
       width: 90%;
-      max-width: 440px;
+      max-width: 460px;
       text-align: center;
       color: #fff;
-      box-shadow: 0 25px 60px rgba(0,0,0,0.9);
+      box-shadow: 0 25px 70px rgba(0,0,0,0.95);
     }
 
     .modal-box h2 {
       font-family: 'Bangers', cursive;
-      font-size: 2.6rem;
+      font-size: 2.8rem;
       color: #facc15;
       letter-spacing: 0.05em;
-      margin-bottom: 8px;
     }
 
     .modal-quote {
       font-size: 1.05rem;
       color: #fde047;
-      margin-bottom: 20px;
+      margin: 8px 0 20px;
     }
 
     .modal-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-      background: rgba(0,0,0,0.45);
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      background: rgba(0,0,0,0.5);
       padding: 16px;
       border-radius: 14px;
       margin-bottom: 22px;
@@ -473,89 +536,95 @@
   </style>
 </head>
 <body>
-  <div class="arcade-room"></div>
+  <canvas id="fx-canvas"></canvas>
+  <div id="screen-flash"></div>
+  <div class="arcade-room" id="room-bg"></div>
 
-  <!-- Arcade Cabinet -->
-  <div class="cabinet-machine">
-    <!-- Top Scoreboard -->
+  <!-- Main Arcade Cabinet -->
+  <div class="cabinet-machine" id="cabinet">
     <div class="marquee-housing">
-      <div class="scoreboard-screen">
+      <div class="scoreboard-screen" id="scoreboard">
         <div>
-          <span class="stat-label">SCORE:</span>
-          <span id="score-val" class="stat-val score-yellow">0000</span>
+          <span class="stat-label">SCORE</span>
+          <span id="score-val" class="stat-val gold">0000</span>
         </div>
         <div>
-          <span class="stat-label">TIME LEFT:</span>
+          <span class="stat-label">TIME LEFT</span>
           <span id="time-val" class="stat-val">45s</span>
         </div>
         <div>
-          <span class="stat-label">HIGH SCORE:</span>
+          <span class="stat-label">STREAK / MODE</span>
+          <span id="streak-val" class="stat-val combo-hot">0x</span>
+        </div>
+        <div>
+          <span class="stat-label">HIGH SCORE</span>
           <span id="high-val" class="stat-val">0000</span>
         </div>
       </div>
     </div>
 
-    <!-- Speaker Grilles + Game Controls -->
     <div class="speaker-bay">
       <div class="speaker-vent"></div>
       <div class="arcade-controls">
         <button id="start-btn" class="arcade-btn btn-start">START GAME</button>
-        <button id="sfx-btn" class="arcade-btn btn-sfx">SFX: ON</button>
+        <button id="music-btn" class="arcade-btn btn-toggle">MUSIC: ON</button>
+        <button id="sfx-btn" class="arcade-btn btn-toggle">SFX: ON</button>
       </div>
       <div class="speaker-vent"></div>
     </div>
 
-    <!-- Playfield Bezel -->
-    <div class="playfield-bezel">
-      <div class="rivet tl"></div>
-      <div class="rivet tr"></div>
-      <div class="rivet bl"></div>
-      <div class="rivet br"></div>
+    <div class="legend-bar">
+      <div class="legend-item"><span class="leg-troll">● TROLL:</span> +100</div>
+      <div class="legend-item"><span class="leg-boss">● BOSS (3 HITS):</span> +500</div>
+      <div class="legend-item"><span class="leg-jackpot">● JACKPOT:</span> +350</div>
+      <div class="legend-item"><span class="leg-tnt">● TNT BOMB:</span> -200 (DON'T HIT!)</div>
+    </div>
 
-      <!-- 3x3 Grassy Board -->
+    <div class="playfield-bezel">
       <div class="grass-board" id="board"></div>
     </div>
   </div>
 
-  <!-- Custom 3D Wooden & Red Mallet (Matches Sample Image) -->
+  <!-- 3D Wooden & Red Rubber Mallet Cursor -->
   <div id="mallet-cursor">
     <svg viewBox="0 0 140 140" width="100%" height="100%">
       <defs>
         <linearGradient id="woodHead" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#d97706"/>
+          <stop offset="0%" stop-color="#f59e0b"/>
           <stop offset="50%" stop-color="#b45309"/>
           <stop offset="100%" stop-color="#78350f"/>
         </linearGradient>
         <linearGradient id="redCap" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#ef4444"/>
-          <stop offset="100%" stop-color="#991b1b"/>
+          <stop offset="0%" stop-color="#f43f5e"/>
+          <stop offset="100%" stop-color="#9f1239"/>
         </linearGradient>
       </defs>
-      <!-- Wooden Handle -->
       <rect x="68" y="55" width="16" height="78" rx="7" transform="rotate(-35 76 90)" fill="#b45309" stroke="#1e1108" stroke-width="3.5"/>
-      <!-- Mallet Barrel Head -->
       <g transform="rotate(-35 52 46)">
         <rect x="18" y="16" width="68" height="44" rx="8" fill="url(#woodHead)" stroke="#1e1108" stroke-width="3.5"/>
-        <!-- Top & Bottom Red Rubber Strike Pads -->
-        <rect x="12" y="18" width="12" height="40" rx="5" fill="url(#redCap)" stroke="#1e1108" stroke-width="3"/>
-        <rect x="80" y="18" width="12" height="40" rx="5" fill="url(#redCap)" stroke="#1e1108" stroke-width="3"/>
+        <rect x="10" y="18" width="13" height="40" rx="5" fill="url(#redCap)" stroke="#1e1108" stroke-width="3"/>
+        <rect x="81" y="18" width="13" height="40" rx="5" fill="url(#redCap)" stroke="#1e1108" stroke-width="3"/>
       </g>
     </svg>
   </div>
 
-  <!-- Game Over Modal -->
+  <!-- Post-Round Summary Modal -->
   <div id="modal" class="modal-backdrop hidden">
     <div class="modal-box">
-      <h2>TIME'S UP!</h2>
-      <p id="modal-taunt" class="modal-quote">"The moles had a great laugh today!"</p>
+      <h2 id="modal-title">ROUND OVER!</h2>
+      <p id="modal-taunt" class="modal-quote">"What a wild round!"</p>
       <div class="modal-grid">
         <div>
-          <span class="stat-label">FINAL SCORE</span>
-          <strong id="final-score" class="stat-val score-yellow" style="font-size:1.9rem">0</strong>
+          <span class="stat-label">SCORE</span>
+          <strong id="final-score" class="stat-val gold" style="font-size:1.65rem">0</strong>
         </div>
         <div>
           <span class="stat-label">ACCURACY</span>
-          <strong id="final-acc" class="stat-val" style="font-size:1.9rem">0%</strong>
+          <strong id="final-acc" class="stat-val" style="font-size:1.65rem">0%</strong>
+        </div>
+        <div>
+          <span class="stat-label">MAX STREAK</span>
+          <strong id="final-streak" class="stat-val combo-hot" style="font-size:1.65rem">0x</strong>
         </div>
       </div>
       <button id="replay-btn" class="arcade-btn btn-start">PLAY AGAIN</button>
@@ -563,37 +632,197 @@
   </div>
 
   <script>
-    // --- REALISTIC TIMING & GAME SETTINGS ---
+    // --- 1. CONFIGURATION & ARCHETYPES ---
     const CONFIG = {
       holes: 9,
       roundSeconds: 45,
-      spawnInterval: [850, 1450],     // Time between mole pop-ups
-      stayDuration: [1650, 2400],     // Realistic 1.65s to 2.4s stay time so they don't vanish early!
-      minStayDuration: 1050,          // Never faster than 1.05 seconds
-      laughDuration: 1150,            // How long the mole stays laughing at you on a miss
-      tauntCooldown: 750
+      spawnInterval: [700, 1250],
+      maxConcurrent: 3,
+      laughDuration: 1150,
+      tauntCooldown: 700,
+      archetypes: {
+        troll:   { weight: 0.52, hp: 1, points: 100, stay: [1550, 2200] },
+        boss:    { weight: 0.16, hp: 3, points: 500, stay: [2600, 3200] },
+        jackpot: { weight: 0.16, hp: 1, points: 350, stay: [1150, 1550] },
+        tnt:     { weight: 0.16, hp: 1, points: -200, stay: [1500, 2000] }
+      }
     };
 
-    // --- TEASING / RAGE-BAIT MESSAGES (With Comic Header + Body) ---
     const INSULTS = [
+      { header: "BWAHAHA!", text: "You just smashed empty dirt!" },
+      { header: "TOO SLOW!", text: "I drank a coffee waiting for you!" },
       { header: "SIGH...", text: "Try opening your eyes next time?" },
-      { header: "HAHAHA!", text: "You just whacked a pile of dirt!" },
-      { header: "TOO SLOW!", text: "I took a whole nap waiting for you!" },
-      { header: "SERIOUSLY?!", text: "My grandma swings faster than that!" },
-      { header: "WHOOPS!", text: "Mallet sold separately, apparently!" },
-      { header: "HEHEHE!", text: "You had 3 business days to hit me!" },
       { header: "SWING & A MISS!", text: "Dirt: 1 — You: 0!" },
-      { header: "YAWN...", text: "Wake me up when you find your aim!" },
-      { header: "NICE TRY!", text: "Were you aiming for my shadow?!" },
-      { header: "BWAHAHA!", text: "Zero reflexes detected!" }
+      { header: "CHOKED!", text: "My grandma swings faster than that!" },
+      { header: "HEHEHE!", text: "You had 3 business days to hit me!" },
+      { header: "WHOOPS!", text: "Were you aiming for my shadow?!" },
+      { header: "PATHETIC!", text: "Zero reflexes detected!" }
     ];
 
-    // --- CLEAN ARCADE SOUND EFFECTS (NO ROBOTIC VOICE!) ---
-    class SoundEffects {
+    // --- 2. 60FPS CANVAS PARTICLE & SHOCKWAVE ENGINE ---
+    class ParticleEngine {
+      constructor() {
+        this.canvas = document.getElementById('fx-canvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.particles = [];
+        this.rings = [];
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
+        this._loop();
+      }
+
+      resize() {
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+      }
+
+      spawnBurst(x, y, preset = 'normal') {
+        // Shockwave ring
+        const ringColors = {
+          normal: '#fde047',
+          bossClang: '#38bdf8',
+          bossKO: '#f97316',
+          jackpot: '#facc15',
+          tnt: '#ef4444',
+          whiff: '#94a3b8'
+        };
+        this.rings.push({
+          x, y,
+          r: 8,
+          maxR: preset === 'tnt' ? 190 : preset === 'bossKO' ? 150 : 95,
+          color: ringColors[preset] || '#ffffff',
+          alpha: 1,
+          lineWidth: preset === 'tnt' ? 10 : 6
+        });
+
+        const count = preset === 'tnt' ? 42 : preset === 'jackpot' || preset === 'bossKO' ? 32 : 18;
+        for (let i = 0; i < count; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const speed = (2 + Math.random() * (preset === 'tnt' ? 15 : 10));
+          let color = '#a16207';
+          let shape = 'circle';
+          let size = 4 + Math.random() * 5;
+
+          if (preset === 'normal') {
+            color = ['#fde047', '#f97316', '#78350f', '#84cc16'][i % 4];
+            shape = i % 3 === 0 ? 'star' : 'circle';
+          } else if (preset === 'bossClang') {
+            color = ['#38bdf8', '#e2e8f0', '#94a3b8'][i % 3];
+            shape = 'shard';
+          } else if (preset === 'bossKO') {
+            color = ['#facc15', '#f97316', '#38bdf8', '#ffffff'][i % 4];
+            shape = i % 2 === 0 ? 'star' : 'shard';
+            size = 6 + Math.random() * 6;
+          } else if (preset === 'jackpot') {
+            color = ['#facc15', '#fef08a', '#eab308'][i % 3];
+            shape = 'coin';
+            size = 7 + Math.random() * 4;
+          } else if (preset === 'tnt') {
+            color = ['#ef4444', '#f97316', '#facc15', '#1e293b'][i % 4];
+            shape = 'circle';
+            size = 6 + Math.random() * 9;
+          }
+
+          this.particles.push({
+            x, y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed - (preset === 'jackpot' ? 6 : 3),
+            gravity: 0.42,
+            color,
+            shape,
+            size,
+            alpha: 1,
+            rot: Math.random() * 6.28,
+            vRot: (Math.random() - 0.5) * 0.3
+          });
+        }
+      }
+
+      _loop() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        // Update Shockwave Rings
+        for (let i = this.rings.length - 1; i >= 0; i--) {
+          const r = this.rings[i];
+          r.r += (r.maxR - r.r) * 0.22;
+          r.alpha -= 0.06;
+          if (r.alpha <= 0) {
+            this.rings.splice(i, 1);
+            continue;
+          }
+          this.ctx.save();
+          this.ctx.beginPath();
+          this.ctx.arc(r.x, r.y, r.r, 0, Math.PI * 2);
+          this.ctx.strokeStyle = r.color;
+          this.ctx.globalAlpha = Math.max(0, r.alpha);
+          this.ctx.lineWidth = r.lineWidth;
+          this.ctx.stroke();
+          this.ctx.restore();
+        }
+
+        // Update Debris Particles
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+          const p = this.particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += p.gravity;
+          p.rot += p.vRot;
+          p.alpha -= 0.024;
+
+          if (p.alpha <= 0) {
+            this.particles.splice(i, 1);
+            continue;
+          }
+
+          this.ctx.save();
+          this.ctx.globalAlpha = Math.max(0, p.alpha);
+          this.ctx.translate(p.x, p.y);
+          this.ctx.rotate(p.rot);
+          this.ctx.fillStyle = p.color;
+
+          if (p.shape === 'shard') {
+            this.ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+          } else if (p.shape === 'coin') {
+            this.ctx.beginPath();
+            this.ctx.ellipse(0, 0, p.size, p.size * 0.65, 0, 0, Math.PI * 2);
+            this.ctx.fill();
+            this.ctx.strokeStyle = '#713f12';
+            this.ctx.lineWidth = 1.5;
+            this.ctx.stroke();
+          } else if (p.shape === 'star') {
+            this.ctx.beginPath();
+            for (let j = 0; j < 5; j++) {
+              this.ctx.lineTo(Math.cos((18 + j * 72) * Math.PI / 180) * p.size,
+                              -Math.sin((18 + j * 72) * Math.PI / 180) * p.size);
+              this.ctx.lineTo(Math.cos((54 + j * 72) * Math.PI / 180) * (p.size * 0.45),
+                              -Math.sin((54 + j * 72) * Math.PI / 180) * (p.size * 0.45));
+            }
+            this.ctx.closePath();
+            this.ctx.fill();
+          } else {
+            this.ctx.beginPath();
+            this.ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+            this.ctx.fill();
+          }
+          this.ctx.restore();
+        }
+
+        requestAnimationFrame(() => this._loop());
+      }
+    }
+
+    // --- 3. DYNAMIC TEMPO SEQUENCER & HEAVY BASS SFX ENGINE ---
+    class ArcadeSoundSystem {
       constructor() {
         this.ctx = null;
-        this.enabled = true;
+        this.sfxEnabled = true;
+        this.musicEnabled = true;
+        this.isPlayingMusic = false;
+        this.bpm = 115;
+        this.stepIndex = 0;
+        this.musicTimer = null;
       }
+
       _init() {
         if (!this.ctx) {
           const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -601,169 +830,350 @@
         }
         if (this.ctx.state === 'suspended') this.ctx.resume();
       }
-      pop() {
-        if (!this.enabled) return;
+
+      startMusic() {
         this._init();
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(180, this.ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(440, this.ctx.currentTime + 0.11);
-        gain.gain.setValueAtTime(0.16, this.ctx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.11);
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start();
-        osc.stop(this.ctx.currentTime + 0.11);
+        this.isPlayingMusic = true;
+        this.stepIndex = 0;
+        this._scheduleTick();
       }
-      whack() {
-        if (!this.enabled) return;
+
+      stopMusic() {
+        this.isPlayingMusic = false;
+        clearTimeout(this.musicTimer);
+      }
+
+      setTempo(bpm) {
+        this.bpm = bpm;
+      }
+
+      _scheduleTick() {
+        if (!this.isPlayingMusic) return;
+        const stepDurationMs = (60 / this.bpm / 4) * 1000; // 16th note steps
+
+        if (this.musicEnabled && this.ctx) {
+          this._playSequencerStep(this.stepIndex);
+        }
+        this.stepIndex = (this.stepIndex + 1) % 16;
+        this.musicTimer = setTimeout(() => this._scheduleTick(), stepDurationMs);
+      }
+
+      _playSequencerStep(step) {
+        const now = this.ctx.currentTime;
+        // Driving 4-on-the-floor Arcade Kick on 0, 4, 8, 12
+        if (step % 4 === 0) {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(125, now);
+          osc.frequency.exponentialRampToValueAtTime(38, now + 0.11);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.12);
+        }
+
+        // Off-beat Synthwave Bassline
+        const bassNotes = [110, 110, 130.8, 110, 146.8, 130.8, 98, 110];
+        if (step % 2 === 1) {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sawtooth';
+          const freq = bassNotes[Math.floor(step / 2) % bassNotes.length];
+          osc.frequency.setValueAtTime(freq, now);
+          gain.gain.setValueAtTime(0.065, now);
+          gain.gain.exponentialRampToValueAtTime(0.008, now + 0.1);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.1);
+        }
+
+        // High-energy Fever / Red-Alert Arpeggio when BPM >= 132
+        if (this.bpm >= 132 && step % 2 === 0) {
+          const arp = [440, 523.25, 659.25, 880];
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(arp[(step / 2) % 4], now);
+          gain.gain.setValueAtTime(0.05, now);
+          gain.gain.exponentialRampToValueAtTime(0.005, now + 0.08);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.08);
+        }
+      }
+
+      // Punchy Sub-Bass Mallet Hit
+      playHeavyWhack() {
+        if (!this.sfxEnabled) return;
         this._init();
         const now = this.ctx.currentTime;
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'triangle';
-        osc.frequency.setValueAtTime(340, now);
-        osc.frequency.exponentialRampToValueAtTime(85, now + 0.14);
-        gain.gain.setValueAtTime(0.32, now);
-        gain.gain.linearRampToValueAtTime(0.01, now + 0.14);
+        osc.frequency.setValueAtTime(380, now);
+        osc.frequency.exponentialRampToValueAtTime(52, now + 0.16);
+        gain.gain.setValueAtTime(0.45, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.16);
         osc.connect(gain);
         gain.connect(this.ctx.destination);
         osc.start(now);
-        osc.stop(now + 0.14);
+        osc.stop(now + 0.16);
       }
-      // Short playful 3-note cartoon chuckle when the mole laughs (no words/TTS)
-      moleChuckle() {
-        if (!this.enabled) return;
+
+      // Metallic Anvil Clang for Boss Armor
+      playArmorClang() {
+        if (!this.sfxEnabled) return;
         this._init();
         const now = this.ctx.currentTime;
-        [0, 0.09, 0.18].forEach((offset, i) => {
+        [540, 815, 1220].forEach((freq) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(freq, now);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.exponentialRampToValueAtTime(0.005, now + 0.18);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.18);
+        });
+      }
+
+      // Jackpot Coin Cascade
+      playJackpot() {
+        if (!this.sfxEnabled) return;
+        this._init();
+        const now = this.ctx.currentTime;
+        [587.33, 783.99, 987.77, 1174.66].forEach((freq, idx) => {
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
           osc.type = 'triangle';
-          osc.frequency.setValueAtTime(480 - i * 45, now + offset);
-          osc.frequency.exponentialRampToValueAtTime(320, now + offset + 0.07);
-          gain.gain.setValueAtTime(0.14, now + offset);
-          gain.gain.linearRampToValueAtTime(0.01, now + offset + 0.07);
+          osc.frequency.setValueAtTime(freq, now + idx * 0.045);
+          gain.gain.setValueAtTime(0.22, now + idx * 0.045);
+          gain.gain.exponentialRampToValueAtTime(0.008, now + idx * 0.045 + 0.22);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + idx * 0.045);
+          osc.stop(now + idx * 0.045 + 0.22);
+        });
+      }
+
+      // Massive TNT Detonation
+      playExplosion() {
+        if (!this.sfxEnabled) return;
+        this._init();
+        const now = this.ctx.currentTime;
+
+        // White Noise Blast
+        const bufferSize = this.ctx.sampleRate * 0.45;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(900, now);
+        filter.frequency.exponentialRampToValueAtTime(80, now + 0.45);
+
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.65, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.ctx.destination);
+        noise.start(now);
+      }
+
+      // Mocking 3-Note Chuckle on Miss
+      playLaughChuckle() {
+        if (!this.sfxEnabled) return;
+        this._init();
+        const now = this.ctx.currentTime;
+        [0, 0.08, 0.16].forEach((offset, i) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(520 - i * 55, now + offset);
+          osc.frequency.exponentialRampToValueAtTime(340, now + offset + 0.065);
+          gain.gain.setValueAtTime(0.12, now + offset);
+          gain.gain.linearRampToValueAtTime(0.01, now + offset + 0.065);
           osc.connect(gain);
           gain.connect(this.ctx.destination);
           osc.start(now + offset);
-          osc.stop(now + offset + 0.07);
+          osc.stop(now + offset + 0.065);
         });
       }
     }
 
-    // --- ILLUSTRATED MOLE SVG GENERATOR (Normal, Helmet, Laughing, Whacked) ---
-    function getMoleSVG(mood = 'normal', hasHelmet = false) {
-      const helmetSVG = hasHelmet ? `
-        <path d="M18,42 C18,14 82,14 82,42 Z" fill="#64748b" stroke="#0f172a" stroke-width="3.5"/>
-        <rect x="14" y="38" width="72" height="8" rx="4" fill="#475569" stroke="#0f172a" stroke-width="3"/>
-        <circle cx="50" cy="27" r="7" fill="#fef08a" stroke="#0f172a" stroke-width="2.5"/>
-      ` : `
-        <!-- Tuft of Fur -->
-        <path d="M44,18 Q50,6 56,18 Q62,10 60,21" fill="none" stroke="#451a03" stroke-width="3.5" stroke-linecap="round"/>
-      `;
+    // --- 4. EXPRESSIVE MOLE ARCHETYPE SVG GENERATOR ---
+    function getMoleArchetypeSVG(type = 'troll', mood = 'normal', hp = 3) {
+      // Body & Fur Gradients per Archetype
+      const bodyColors = {
+        troll:   ['#d97706', '#92400e', '#451a03'],
+        boss:    ['#475569', '#334155', '#0f172a'],
+        jackpot: ['#fde047', '#eab308', '#a16207'],
+        tnt:     ['#fb7185', '#e11d48', '#881337']
+      };
+      const [c1, c2, c3] = bodyColors[type] || bodyColors.troll;
 
-      let eyesAndMouth = '';
+      // Headgear per Archetype
+      let headgear = '';
+      if (type === 'troll') {
+        // Backwards Red Streetwear Cap
+        headgear = `
+          <path d="M22,38 C22,14 78,14 78,38 Z" fill="#ef4444" stroke="#0f172a" stroke-width="3.5"/>
+          <rect x="52" y="32" width="36" height="8" rx="4" fill="#b91c1c" stroke="#0f172a" stroke-width="3"/>
+        `;
+      } else if (type === 'boss') {
+        // Heavy Spiked Gladiator / Welder Helmet with Damage Cracks
+        const crack = hp <= 2 ? `<path d="M42,16 L48,28 L40,36" stroke="#0f172a" stroke-width="3" fill="none"/>` : '';
+        const crack2 = hp === 1 ? `<path d="M64,18 L56,30 L66,38" stroke="#facc15" stroke-width="3" fill="none"/>` : '';
+        headgear = `
+          <polygon points="50,2 43,18 57,18" fill="#f43f5e" stroke="#0f172a" stroke-width="3"/>
+          <path d="M15,44 C15,12 85,12 85,44 Z" fill="#94a3b8" stroke="#0f172a" stroke-width="4"/>
+          <rect x="12" y="38" width="76" height="10" rx="4" fill="#64748b" stroke="#0f172a" stroke-width="3.5"/>
+          ${crack}${crack2}
+        `;
+      } else if (type === 'jackpot') {
+        // Royal Gold Crown + Neon Shutter Shades
+        headgear = `
+          <polygon points="22,34 28,10 42,24 50,6 58,24 72,10 78,34" fill="#fde047" stroke="#0f172a" stroke-width="3.5"/>
+          <circle cx="50" cy="18" r="4" fill="#f43f5e"/>
+          <circle cx="33" cy="22" r="3.5" fill="#38bdf8"/>
+          <circle cx="67" cy="22" r="3.5" fill="#38bdf8"/>
+        `;
+      } else if (type === 'tnt') {
+        // Sizzling Dynamite Plunger & Burning Fuse on Head
+        headgear = `
+          <rect x="42" y="8" width="16" height="28" rx="3" fill="#dc2626" stroke="#0f172a" stroke-width="3"/>
+          <text x="50" y="25" font-size="9" font-weight="900" text-anchor="middle" fill="#ffffff">TNT</text>
+          <path d="M50,8 Q58,-2 66,4" fill="none" stroke="#fde047" stroke-width="3"/>
+          <circle cx="67" cy="4" r="6" fill="#f97316"/>
+          <circle cx="67" cy="4" r="3" fill="#fef08a"/>
+        `;
+      }
 
+      // Facial Expressions
+      let face = '';
       if (mood === 'laughing') {
-        // Hysterical Mocking Laughing Face (> < eyes + wide open HAHA mouth)
-        eyesAndMouth = `
-          <!-- Squinted Laughing Eyes -->
-          <path d="M29,42 L41,47 L29,52" fill="none" stroke="#0f172a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M71,42 L59,47 L71,52" fill="none" stroke="#0f172a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-          <!-- Snout -->
-          <ellipse cx="50" cy="60" rx="20" ry="12" fill="#d97706" stroke="#0f172a" stroke-width="3"/>
-          <ellipse cx="50" cy="54" rx="7" ry="4.5" fill="#0f172a"/>
-          <!-- Wide Open Laughing Mouth -->
-          <path d="M34,68 Q50,90 66,68 Z" fill="#7f1d1d" stroke="#0f172a" stroke-width="3"/>
-          <path d="M42,79 Q50,73 58,79 Z" fill="#f43f5e"/>
-          <!-- Buck Teeth -->
-          <rect x="44" y="68" width="5.5" height="7" rx="1" fill="#ffffff" stroke="#0f172a" stroke-width="1.5"/>
-          <rect x="50.5" y="68" width="5.5" height="7" rx="1" fill="#ffffff" stroke="#0f172a" stroke-width="1.5"/>
+        face = `
+          <path d="M27,44 L41,49 L27,54" fill="none" stroke="#0f172a" stroke-width="4.5" stroke-linecap="round"/>
+          <path d="M73,44 L59,49 L73,54" fill="none" stroke="#0f172a" stroke-width="4.5" stroke-linecap="round"/>
+          <ellipse cx="50" cy="61" rx="19" ry="11" fill="#fbbf24" stroke="#0f172a" stroke-width="3"/>
+          <path d="M31,69 Q50,95 69,69 Z" fill="#7f1d1d" stroke="#0f172a" stroke-width="3.5"/>
+          <path d="M40,82 Q50,74 60,82 Z" fill="#fb7185"/>
         `;
       } else if (mood === 'whacked') {
-        // Bonked Dizzy Face
-        eyesAndMouth = `
-          <text x="27" y="53" font-size="18" font-weight="900" fill="#0f172a">X</text>
-          <text x="60" y="53" font-size="18" font-weight="900" fill="#0f172a">X</text>
-          <ellipse cx="50" cy="63" rx="18" ry="11" fill="#d97706" stroke="#0f172a" stroke-width="3"/>
-          <circle cx="50" cy="74" r="6" fill="#0f172a"/>
+        face = `
+          <text x="26" y="55" font-size="19" font-weight="900" fill="#0f172a">X</text>
+          <text x="59" y="55" font-size="19" font-weight="900" fill="#0f172a">X</text>
+          <ellipse cx="50" cy="64" rx="17" ry="10" fill="#fbbf24" stroke="#0f172a" stroke-width="3"/>
+          <circle cx="50" cy="77" r="7" fill="#0f172a"/>
+        `;
+      } else if (type === 'jackpot') {
+        // Cool Neon Shades + Dollar Smile
+        face = `
+          <rect x="24" y="40" width="23" height="13" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="2.5"/>
+          <rect x="53" y="40" width="23" height="13" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="2.5"/>
+          <line x1="47" y1="45" x2="53" y2="45" stroke="#38bdf8" stroke-width="3"/>
+          <ellipse cx="50" cy="63" rx="18" ry="11" fill="#fef08a" stroke="#0f172a" stroke-width="3"/>
+          <path d="M35,74 Q50,86 65,74" fill="none" stroke="#0f172a" stroke-width="4" stroke-linecap="round"/>
+        `;
+      } else if (type === 'boss') {
+        // Glowing Red War-Face
+        face = `
+          <path d="M25,42 L44,48" stroke="#0f172a" stroke-width="5" stroke-linecap="round"/>
+          <path d="M75,42 L56,48" stroke="#0f172a" stroke-width="5" stroke-linecap="round"/>
+          <circle cx="36" cy="50" r="6" fill="#ef4444"/>
+          <circle cx="64" cy="50" r="6" fill="#ef4444"/>
+          <ellipse cx="50" cy="64" rx="20" ry="12" fill="#94a3b8" stroke="#0f172a" stroke-width="3.5"/>
+          <polygon points="36,75 41,68 46,75" fill="#ffffff" stroke="#0f172a" stroke-width="2"/>
+          <polygon points="54,75 59,68 64,75" fill="#ffffff" stroke="#0f172a" stroke-width="2"/>
         `;
       } else {
-        // Mischievous Arcade Mole Face (Matching Sample Image)
-        eyesAndMouth = `
-          <!-- Angry/Smug Eyebrows -->
-          <path d="M27,39 L42,43" stroke="#0f172a" stroke-width="3.5" stroke-linecap="round"/>
-          <path d="M73,39 L58,43" stroke="#0f172a" stroke-width="3.5" stroke-linecap="round"/>
-          <!-- Glossy Eyes -->
-          <circle cx="36" cy="48" r="5.5" fill="#0f172a"/>
-          <circle cx="64" cy="48" r="5.5" fill="#0f172a"/>
-          <circle cx="34.5" cy="46" r="2" fill="#ffffff"/>
-          <circle cx="62.5" cy="46" r="2" fill="#ffffff"/>
-          <!-- 3D Snout & Whiskers -->
-          <ellipse cx="50" cy="63" rx="19" ry="12" fill="#d97706" stroke="#0f172a" stroke-width="3"/>
-          <ellipse cx="50" cy="57" rx="6.5" ry="4.5" fill="#0f172a"/>
-          <line x1="20" y1="60" x2="30" y2="62" stroke="#0f172a" stroke-width="2.5" stroke-linecap="round"/>
-          <line x1="20" y1="66" x2="30" y2="66" stroke="#0f172a" stroke-width="2.5" stroke-linecap="round"/>
-          <line x1="80" y1="60" x2="70" y2="62" stroke="#0f172a" stroke-width="2.5" stroke-linecap="round"/>
-          <line x1="80" y1="66" x2="70" y2="66" stroke="#0f172a" stroke-width="2.5" stroke-linecap="round"/>
-          <!-- Buck Teeth -->
-          <rect x="43.5" y="73" width="6" height="8" rx="1.5" fill="#ffffff" stroke="#0f172a" stroke-width="2"/>
-          <rect x="50.5" y="73" width="6" height="8" rx="1.5" fill="#ffffff" stroke="#0f172a" stroke-width="2"/>
+        // Cheeky Troll Tongue-Out Face
+        face = `
+          <path d="M26,40 L42,45" stroke="#0f172a" stroke-width="4" stroke-linecap="round"/>
+          <path d="M74,40 L58,45" stroke="#0f172a" stroke-width="4" stroke-linecap="round"/>
+          <circle cx="36" cy="49" r="6" fill="#0f172a"/>
+          <circle cx="64" cy="49" r="6" fill="#0f172a"/>
+          <circle cx="34" cy="47" r="2.2" fill="#ffffff"/>
+          <circle cx="62" cy="47" r="2.2" fill="#ffffff"/>
+          <ellipse cx="50" cy="62" rx="19" ry="11" fill="#fde047" stroke="#0f172a" stroke-width="3"/>
+          <ellipse cx="50" cy="57" rx="6.5" ry="4" fill="#0f172a"/>
+          <!-- Wacky Sticking-Out Tongue -->
+          <path d="M43,72 Q50,90 57,72 Z" fill="#f43f5e" stroke="#0f172a" stroke-width="2.5"/>
         `;
       }
 
       return `
         <svg viewBox="0 0 100 115" width="100%" height="100%">
           <defs>
-            <linearGradient id="furGrad" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stop-color="#b45309"/>
-              <stop offset="55%" stop-color="#92400e"/>
-              <stop offset="100%" stop-color="#451a03"/>
+            <linearGradient id="grad_${type}" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="${c1}"/>
+              <stop offset="55%" stop-color="${c2}"/>
+              <stop offset="100%" stop-color="${c3}"/>
             </linearGradient>
           </defs>
-          <!-- Ears -->
-          <circle cx="22" cy="36" r="9" fill="#78350f" stroke="#0f172a" stroke-width="3"/>
-          <circle cx="78" cy="36" r="9" fill="#78350f" stroke="#0f172a" stroke-width="3"/>
-          <!-- Main Mole Body -->
-          <path d="M18,110 L18,46 C18,16 82,16 82,46 L82,110 Z" fill="url(#furGrad)" stroke="#0f172a" stroke-width="4"/>
-          ${eyesAndMouth}
-          ${helmetSVG}
-          <!-- Front Paws Gripping the Rim -->
-          <ellipse cx="26" cy="98" rx="10" ry="6" fill="#d97706" stroke="#0f172a" stroke-width="3"/>
-          <ellipse cx="74" cy="98" rx="10" ry="6" fill="#d97706" stroke="#0f172a" stroke-width="3"/>
+          <circle cx="20" cy="38" r="9" fill="${c2}" stroke="#0f172a" stroke-width="3"/>
+          <circle cx="80" cy="38" r="9" fill="${c2}" stroke="#0f172a" stroke-width="3"/>
+          <path d="M18,110 L18,46 C18,16 82,16 82,46 L82,110 Z" fill="url(#grad_${type})" stroke="#0f172a" stroke-width="4"/>
+          ${face}
+          ${headgear}
+          <ellipse cx="26" cy="98" rx="10" ry="6" fill="${c1}" stroke="#0f172a" stroke-width="3"/>
+          <ellipse cx="74" cy="98" rx="10" ry="6" fill="${c1}" stroke="#0f172a" stroke-width="3"/>
         </svg>
       `;
     }
 
-    // --- MAIN GAME CONTROLLER ---
-    class ArcadeWhackAMole {
+    // --- 5. MASTER GAME CONTROLLER ---
+    class OverdriveWhackAMole {
       constructor() {
         this.board = document.getElementById('board');
+        this.cabinet = document.getElementById('cabinet');
+        this.roomBg = document.getElementById('room-bg');
+        this.scoreboard = document.getElementById('scoreboard');
+        this.flashEl = document.getElementById('screen-flash');
         this.scoreEl = document.getElementById('score-val');
         this.timeEl = document.getElementById('time-val');
+        this.streakEl = document.getElementById('streak-val');
         this.highEl = document.getElementById('high-val');
         this.startBtn = document.getElementById('start-btn');
+        this.musicBtn = document.getElementById('music-btn');
         this.sfxBtn = document.getElementById('sfx-btn');
         this.mallet = document.getElementById('mallet-cursor');
         this.modal = document.getElementById('modal');
 
-        this.sfx = new SoundEffects();
+        this.fx = new ParticleEngine();
+        this.audio = new ArcadeSoundSystem();
+
         this.isPlaying = false;
         this.score = 0;
-        this.highScore = Number(localStorage.getItem('wam_cabinet_high')) || 0;
+        this.highScore = Number(localStorage.getItem('wam_overdrive_high')) || 0;
         this.timeLeft = CONFIG.roundSeconds;
+        this.streak = 0;
+        this.maxStreak = 0;
         this.clicks = 0;
         this.hits = 0;
 
         this.activeHoles = new Map();
         this.insultBag = [];
         this.lastTauntTime = 0;
+        this.shakePower = 0;
 
         this._buildBoard();
         this._bindEvents();
-        this._updateScoreboard();
+        this._updateHUD();
+        this._shakeLoop();
       }
 
       _buildBoard() {
@@ -773,10 +1183,15 @@
           cell.className = 'hole-cell';
           cell.dataset.index = i;
           cell.innerHTML = `
+            <div class="boss-hp-bar hidden" id="hp-${i}">
+              <div class="hp-pip"></div>
+              <div class="hp-pip"></div>
+              <div class="hp-pip"></div>
+            </div>
             <div class="dirt-pit-back"></div>
             <div class="mole-stage">
               <div class="mole-character" data-index="${i}">
-                ${getMoleSVG('normal', false)}
+                ${getMoleArchetypeSVG('troll', 'normal')}
               </div>
             </div>
             <div class="dirt-rim-front"></div>
@@ -787,7 +1202,6 @@
       }
 
       _bindEvents() {
-        // Smooth 3D Mallet Tracking
         window.addEventListener('pointermove', (e) => {
           this.mallet.style.left = `${e.clientX}px`;
           this.mallet.style.top = `${e.clientY}px`;
@@ -795,27 +1209,63 @@
 
         window.addEventListener('pointerdown', () => {
           this.mallet.classList.add('swing');
-          setTimeout(() => this.mallet.classList.remove('swing'), 110);
+          setTimeout(() => this.mallet.classList.remove('swing'), 95);
         });
 
-        this.board.addEventListener('pointerdown', (e) => this._onBoardWhack(e));
+        this.board.addEventListener('pointerdown', (e) => this._onWhack(e));
         this.startBtn.addEventListener('click', () => this.startRound());
         document.getElementById('replay-btn').addEventListener('click', () => {
           this.modal.classList.add('hidden');
           this.startRound();
         });
 
+        this.musicBtn.addEventListener('click', () => {
+          this.audio.musicEnabled = !this.audio.musicEnabled;
+          this.musicBtn.textContent = `MUSIC: ${this.audio.musicEnabled ? 'ON' : 'OFF'}`;
+        });
+
         this.sfxBtn.addEventListener('click', () => {
-          this.sfx.enabled = !this.sfx.enabled;
-          this.sfxBtn.textContent = `SFX: ${this.sfx.enabled ? 'ON' : 'OFF'}`;
+          this.audio.sfxEnabled = !this.audio.sfxEnabled;
+          this.sfxBtn.textContent = `SFX: ${this.audio.sfxEnabled ? 'ON' : 'OFF'}`;
         });
       }
 
-      _nextInsult() {
-        if (this.insultBag.length === 0) {
-          this.insultBag = [...INSULTS].sort(() => Math.random() - 0.5);
+      // Continuous Camera Shake Decay Loop
+      _shakeLoop() {
+        if (this.shakePower > 0.4) {
+          const dx = (Math.random() - 0.5) * this.shakePower;
+          const dy = (Math.random() - 0.5) * this.shakePower;
+          const rot = (Math.random() - 0.5) * (this.shakePower * 0.12);
+          this.cabinet.style.transform = `translate(${dx}px, ${dy}px) rotate(${rot}deg)`;
+          this.shakePower *= 0.82;
+        } else {
+          this.shakePower = 0;
+          this.cabinet.style.transform = 'none';
         }
-        return this.insultBag.pop();
+        requestAnimationFrame(() => this._shakeLoop());
+      }
+
+      triggerJuice(shakeAmt = 10, hitStopMs = 50, flashColor = null) {
+        this.shakePower = Math.max(this.shakePower, shakeAmt);
+        if (hitStopMs > 0) {
+          document.body.classList.add('hit-stop');
+          setTimeout(() => document.body.classList.remove('hit-stop'), hitStopMs);
+        }
+        if (flashColor) {
+          this.flashEl.style.background = flashColor;
+          this.flashEl.style.opacity = '0.42';
+          setTimeout(() => (this.flashEl.style.opacity = '0'), 95);
+        }
+      }
+
+      _rollArchetype() {
+        const r = Math.random();
+        let sum = 0;
+        for (const [type, cfg] of Object.entries(CONFIG.archetypes)) {
+          sum += cfg.weight;
+          if (r <= sum) return type;
+        }
+        return 'troll';
       }
 
       startRound() {
@@ -825,62 +1275,87 @@
         this.isPlaying = true;
         this.score = 0;
         this.timeLeft = CONFIG.roundSeconds;
+        this.streak = 0;
+        this.maxStreak = 0;
         this.clicks = 0;
         this.hits = 0;
-        this.startBtn.textContent = 'PLAYING...';
+
+        this.scoreboard.classList.remove('red-alert');
+        this.startBtn.textContent = 'IN PROGRESS...';
         this.startBtn.disabled = true;
-        this._updateScoreboard();
+        this._updateHUD();
+
+        this.audio.setTempo(115);
+        this.audio.startMusic();
 
         this.clockTimer = setInterval(() => {
           this.timeLeft--;
-          this._updateScoreboard();
+          if (this.timeLeft <= 12 && this.timeLeft > 0) {
+            this.scoreboard.classList.add('red-alert');
+            this.audio.setTempo(148);
+          }
+          this._updateHUD();
           if (this.timeLeft <= 0) this.endRound();
         }, 1000);
 
-        this._scheduleNextMole();
+        this._scheduleSpawn();
       }
 
-      _scheduleNextMole() {
+      _scheduleSpawn() {
         if (!this.isPlaying) return;
         const [min, max] = CONFIG.spawnInterval;
-        const wait = min + Math.random() * (max - min);
+        const speedFactor = this.timeLeft <= 12 ? 0.72 : this.streak >= 5 ? 0.82 : 1;
+        const delay = (min + Math.random() * (max - min)) * speedFactor;
+
         this.spawnTimer = setTimeout(() => {
-          this._popMole();
-          this._scheduleNextMole();
-        }, wait);
+          this._spawnMole();
+          this._scheduleSpawn();
+        }, delay);
       }
 
-      _popMole() {
-        if (!this.isPlaying || this.activeHoles.size >= 2) return;
+      _spawnMole() {
+        if (!this.isPlaying || this.activeHoles.size >= CONFIG.maxConcurrent) return;
 
-        const freeHoles = [];
+        const free = [];
         for (let i = 0; i < CONFIG.holes; i++) {
-          if (!this.activeHoles.has(i)) freeHoles.push(i);
+          if (!this.activeHoles.has(i)) free.push(i);
         }
-        if (freeHoles.length === 0) return;
+        if (free.length === 0) return;
 
-        const index = freeHoles[Math.floor(Math.random() * freeHoles.length)];
-        const hasHelmet = Math.random() < 0.3;
+        const index = free[Math.floor(Math.random() * free.length)];
+        const type = this._rollArchetype();
+        const cfg = CONFIG.archetypes[type];
+
         const cell = this.board.children[index];
         const moleEl = cell.querySelector('.mole-character');
+        const hpBar = document.getElementById(`hp-${index}`);
 
         moleEl.dataset.state = 'up';
-        moleEl.dataset.helmet = hasHelmet ? 'true' : 'false';
-        moleEl.innerHTML = getMoleSVG('normal', hasHelmet);
-        moleEl.classList.remove('whacked', 'laughing');
+        moleEl.dataset.type = type;
+        moleEl.dataset.hp = cfg.hp;
+        moleEl.innerHTML = getMoleArchetypeSVG(type, 'normal', cfg.hp);
+        moleEl.classList.remove('whacked', 'laughing', 'boss-hit');
         moleEl.classList.add('up');
 
-        this.sfx.pop();
+        if (type === 'boss') {
+          hpBar.classList.remove('hidden');
+          this._renderBossHP(hpBar, cfg.hp);
+        } else {
+          hpBar.classList.add('hidden');
+        }
 
-        const [minStay, maxStay] = CONFIG.stayDuration;
+        const [minStay, maxStay] = cfg.stay;
         const stayMs = minStay + Math.random() * (maxStay - minStay);
 
         const timerId = setTimeout(() => {
-          // Mole wasn't whacked in time -> It laughs at the player before leaving!
-          if (moleEl.dataset.state === 'up' && this.isPlaying) {
-            this._makeMoleLaugh(index, moleEl, hasHelmet);
+          hpBar.classList.add('hidden');
+          // If a non-TNT mole escapes unwhacked, it laughs at you!
+          if (moleEl.dataset.state === 'up' && type !== 'tnt' && this.isPlaying) {
+            this._setStreak(0);
+            this._triggerLaugh(index, moleEl, type);
           } else {
             moleEl.classList.remove('up');
+            moleEl.dataset.state = 'down';
             this.activeHoles.delete(index);
           }
         }, stayMs);
@@ -888,17 +1363,154 @@
         this.activeHoles.set(index, timerId);
       }
 
-      // Triggered when a mole escapes OR when player whiffs an empty hole!
-      _makeMoleLaugh(index, moleEl, hasHelmet = false) {
+      _renderBossHP(hpBar, currentHp) {
+        const pips = hpBar.querySelectorAll('.hp-pip');
+        pips.forEach((pip, idx) => {
+          pip.classList.toggle('lost', idx >= currentHp);
+        });
+      }
+
+      _onWhack(e) {
+        if (!this.isPlaying) return;
+        this.clicks++;
+
+        const clickX = e.clientX;
+        const clickY = e.clientY;
+        const moleEl = e.target.closest('.mole-character');
+        const cellEl = e.target.closest('.hole-cell');
+
+        if (moleEl && (moleEl.dataset.state === 'up' || moleEl.dataset.state === 'laughing')) {
+          const index = Number(moleEl.dataset.index);
+          const type = moleEl.dataset.type || 'troll';
+          let hp = Number(moleEl.dataset.hp || 1);
+          const hpBar = document.getElementById(`hp-${index}`);
+
+          // Remove any active speech bubble on hit
+          const bubble = this.board.children[index].querySelector('.comic-taunt');
+          if (bubble) bubble.remove();
+
+          // CASE 1: Hit a TNT Mole -> KABOOM!
+          if (type === 'tnt') {
+            clearTimeout(this.activeHoles.get(index));
+            this.audio.playExplosion();
+            this.fx.spawnBurst(clickX, clickY, 'tnt');
+            this.triggerJuice(32, 85, '#ef4444');
+
+            this._setStreak(0);
+            this.score = Math.max(0, this.score + CONFIG.archetypes.tnt.points);
+            this._showFloatingText(index, 'KABOOM! -200', '#f43f5e');
+            this._updateHUD();
+
+            moleEl.dataset.state = 'whacked';
+            moleEl.innerHTML = getMoleArchetypeSVG('tnt', 'whacked');
+            moleEl.classList.add('whacked');
+            setTimeout(() => {
+              moleEl.classList.remove('up', 'whacked');
+              moleEl.dataset.state = 'down';
+              this.activeHoles.delete(index);
+            }, 260);
+            return;
+          }
+
+          // CASE 2: Multi-Hit Boss Mole Armor Strike
+          if (type === 'boss' && hp > 1) {
+            hp--;
+            moleEl.dataset.hp = hp;
+            this._renderBossHP(hpBar, hp);
+            moleEl.innerHTML = getMoleArchetypeSVG('boss', 'normal', hp);
+            moleEl.classList.remove('boss-hit');
+            void moleEl.offsetWidth;
+            moleEl.classList.add('boss-hit');
+
+            this.hits++;
+            this.audio.playArmorClang();
+            this.fx.spawnBurst(clickX, clickY, 'bossClang');
+            this.triggerJuice(12, 40);
+            this._showFloatingText(index, `CLANG! (${hp} LEFT)`, '#38bdf8');
+            return;
+          }
+
+          // CASE 3: Knockout Strike (Troll, Jackpot, or Final Boss Hit)
+          clearTimeout(this.activeHoles.get(index));
+          hpBar.classList.add('hidden');
+          moleEl.dataset.state = 'whacked';
+          moleEl.innerHTML = getMoleArchetypeSVG(type, 'whacked');
+          moleEl.classList.remove('laughing', 'boss-hit');
+          moleEl.classList.add('whacked');
+
+          this.hits++;
+          this._setStreak(this.streak + 1);
+          const feverMult = this.streak >= 5 ? 2 : 1;
+          const pts = CONFIG.archetypes[type].points * feverMult;
+          this.score += pts;
+
+          if (type === 'jackpot') {
+            this.audio.playJackpot();
+            this.fx.spawnBurst(clickX, clickY, 'jackpot');
+            this.triggerJuice(18, 65, '#facc15');
+            this._showFloatingText(index, `JACKPOT! +${pts}`, '#fde047');
+          } else if (type === 'boss') {
+            this.audio.playHeavyWhack();
+            this.audio.playJackpot();
+            this.fx.spawnBurst(clickX, clickY, 'bossKO');
+            this.triggerJuice(26, 75, '#38bdf8');
+            this._showFloatingText(index, `BOSS KO! +${pts}`, '#f97316');
+          } else {
+            this.audio.playHeavyWhack();
+            this.fx.spawnBurst(clickX, clickY, 'normal');
+            this.triggerJuice(11, 45);
+            this._showFloatingText(index, `+${pts}${feverMult > 1 ? ' 🔥' : ''}`, '#fde047');
+          }
+
+          if (this.score > this.highScore) {
+            this.highScore = this.score;
+            localStorage.setItem('wam_overdrive_high', this.highScore);
+          }
+          this._updateHUD();
+
+          setTimeout(() => {
+            moleEl.classList.remove('up', 'whacked');
+            moleEl.dataset.state = 'down';
+            this.activeHoles.delete(index);
+          }, 240);
+
+        } else if (cellEl) {
+          // Whiffed on Empty Dirt!
+          this.fx.spawnBurst(clickX, clickY, 'whiff');
+          this._setStreak(0);
+          const missedIdx = Number(cellEl.dataset.index);
+          const targetMole = cellEl.querySelector('.mole-character');
+          this._triggerLaugh(missedIdx, targetMole, 'troll');
+        }
+      }
+
+      _setStreak(newStreak) {
+        this.streak = newStreak;
+        if (this.streak > this.maxStreak) this.maxStreak = this.streak;
+
+        const isFever = this.streak >= 5;
+        this.cabinet.classList.toggle('fever-mode', isFever);
+        this.roomBg.classList.toggle('fever-bg', isFever);
+
+        if (this.timeLeft > 12) {
+          this.audio.setTempo(isFever ? 135 : 115);
+        }
+        this._updateHUD();
+      }
+
+      _triggerLaugh(index, moleEl, type = 'troll') {
         clearTimeout(this.activeHoles.get(index));
+        document.getElementById(`hp-${index}`).classList.add('hidden');
 
         moleEl.dataset.state = 'laughing';
-        moleEl.innerHTML = getMoleSVG('laughing', hasHelmet);
-        moleEl.classList.remove('whacked');
+        moleEl.dataset.type = type === 'tnt' ? 'troll' : type;
+        moleEl.dataset.hp = 1;
+        moleEl.innerHTML = getMoleArchetypeSVG(moleEl.dataset.type, 'laughing');
+        moleEl.classList.remove('whacked', 'boss-hit');
         moleEl.classList.add('up', 'laughing');
 
-        this.sfx.moleChuckle();
-        this._showComicBubble(index);
+        this.audio.playLaughChuckle();
+        this._showComicTaunt(index);
 
         const leaveTimer = setTimeout(() => {
           moleEl.classList.remove('up', 'laughing');
@@ -909,65 +1521,20 @@
         this.activeHoles.set(index, leaveTimer);
       }
 
-      _onBoardWhack(e) {
-        if (!this.isPlaying) return;
-        this.clicks++;
-
-        const moleEl = e.target.closest('.mole-character');
-        const cellEl = e.target.closest('.hole-cell');
-
-        // Direct hit on an active mole (even if it's currently laughing at you!)
-        if (moleEl && (moleEl.dataset.state === 'up' || moleEl.dataset.state === 'laughing')) {
-          const index = Number(moleEl.dataset.index);
-          const hasHelmet = moleEl.dataset.helmet === 'true';
-
-          clearTimeout(this.activeHoles.get(index));
-          moleEl.dataset.state = 'whacked';
-          moleEl.innerHTML = getMoleSVG('whacked', hasHelmet);
-          moleEl.classList.remove('laughing');
-          moleEl.classList.add('whacked');
-
-          // Remove any active taunt bubble on this hole since you shut him up!
-          const bubble = this.board.children[index].querySelector('.comic-taunt');
-          if (bubble) bubble.remove();
-
-          this.sfx.whack();
-          this.hits++;
-          const pts = hasHelmet ? 150 : 100;
-          this.score += pts;
-
-          if (this.score > this.highScore) {
-            this.highScore = this.score;
-            localStorage.setItem('wam_cabinet_high', this.highScore);
-          }
-
-          this._showFloatingPoints(index, `+${pts}`);
-          this._updateScoreboard();
-
-          setTimeout(() => {
-            moleEl.classList.remove('up', 'whacked');
-            moleEl.dataset.state = 'down';
-            this.activeHoles.delete(index);
-          }, 260);
-
-        } else if (cellEl) {
-          // PLAYER MISSED (Clicked an empty hole!) -> Mole pops up laughing at you!
-          const missedIdx = Number(cellEl.dataset.index);
-          const targetMole = cellEl.querySelector('.mole-character');
-          this._makeMoleLaugh(missedIdx, targetMole, false);
-        }
-      }
-
-      _showComicBubble(index) {
+      _showComicTaunt(index) {
         const now = performance.now();
         if (now - this.lastTauntTime < CONFIG.tauntCooldown) return;
         this.lastTauntTime = now;
 
-        const cell = this.board.children[index];
-        const old = cell.querySelector('.comic-taunt');
-        if (old) old.remove();
+        if (this.insultBag.length === 0) {
+          this.insultBag = [...INSULTS].sort(() => Math.random() - 0.5);
+        }
+        const insult = this.insultBag.pop();
 
-        const insult = this._nextInsult();
+        const cell = this.board.children[index];
+        const existing = cell.querySelector('.comic-taunt');
+        if (existing) existing.remove();
+
         const bubble = document.createElement('div');
         bubble.className = 'comic-taunt';
         bubble.innerHTML = `
@@ -977,23 +1544,31 @@
           </div>
         `;
         cell.appendChild(bubble);
-
         setTimeout(() => bubble.remove(), CONFIG.laughDuration);
       }
 
-      _showFloatingPoints(index, text) {
+      _showFloatingText(index, text, color) {
         const cell = this.board.children[index];
         const pop = document.createElement('div');
         pop.className = 'floating-pts';
+        pop.style.color = color;
         pop.textContent = text;
         cell.appendChild(pop);
         setTimeout(() => pop.remove(), 800);
       }
 
-      _updateScoreboard() {
+      _updateHUD() {
         this.scoreEl.textContent = String(this.score).padStart(4, '0');
         this.highEl.textContent = String(this.highScore).padStart(4, '0');
         this.timeEl.textContent = `${this.timeLeft}s`;
+
+        if (this.streak >= 5) {
+          this.streakEl.textContent = `${this.streak}x FEVER!`;
+          this.streakEl.className = 'stat-val fever-text';
+        } else {
+          this.streakEl.textContent = `${this.streak}x`;
+          this.streakEl.className = 'stat-val combo-hot';
+        }
       }
 
       _clearAllTimers() {
@@ -1005,28 +1580,37 @@
 
       endRound() {
         this._clearAllTimers();
+        this.audio.stopMusic();
         this.isPlaying = false;
+
+        this.cabinet.classList.remove('fever-mode');
+        this.roomBg.classList.remove('fever-bg');
+        this.scoreboard.classList.remove('red-alert');
         this.startBtn.textContent = 'START GAME';
         this.startBtn.disabled = false;
 
         this.board.querySelectorAll('.mole-character').forEach((m) => {
-          m.classList.remove('up', 'laughing', 'whacked');
+          m.classList.remove('up', 'laughing', 'whacked', 'boss-hit');
           m.dataset.state = 'down';
         });
+        this.board.querySelectorAll('.boss-hp-bar').forEach((b) => b.classList.add('hidden'));
 
         const acc = this.clicks > 0 ? Math.round((this.hits / this.clicks) * 100) : 0;
         document.getElementById('final-score').textContent = String(this.score).padStart(4, '0');
         document.getElementById('final-acc').textContent = `${acc}%`;
+        document.getElementById('final-streak').textContent = `${this.maxStreak}x`;
         document.getElementById('modal-taunt').textContent =
-          acc < 50
-            ? '"SIGH... The moles are still laughing at your aim!"'
-            : '"Not bad! You actually wiped the smile off their faces!"';
+          this.score >= 2500
+            ? '"UNSTOPPABLE! You demolished the mole empire!"'
+            : acc < 50
+              ? '"BWAHAHA! The moles are still laughing at your aim!"'
+              : '"Solid reflexes! Try hitting a 5x streak for FEVER MODE!"';
 
         this.modal.classList.remove('hidden');
       }
     }
 
-    window.onload = () => new ArcadeWhackAMole();
+    window.onload = () => new OverdriveWhackAMole();
   </script>
 </body>
 </html>
