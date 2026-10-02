@@ -3,12 +3,312 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Whac-A-Mole // Pro Arcade Edition</title>
-  <link rel="stylesheet" href="css/style.css" />
+  <title>Whac-A-Mole // Pro Edition</title>
+  <style>
+    :root {
+      --bg-dark: #0b0f19;
+      --cabinet-bg: #151c2c;
+      --cabinet-border: #26334d;
+      --hole-interior: #05080f;
+      --accent-gold: #facc15;
+      --accent-cyan: #38bdf8;
+      --accent-danger: #f43f5e;
+      --text-primary: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      background: radial-gradient(circle at center, #1e293b 0%, var(--bg-dark) 100%);
+      color: var(--text-primary);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .arcade-wrapper {
+      width: 100%;
+      max-width: 680px;
+      background: var(--cabinet-bg);
+      border: 3px solid var(--cabinet-border);
+      border-radius: 20px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.75);
+      padding: 24px;
+    }
+
+    .hud-panel {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      background: #090d16;
+      border: 2px solid #1e293b;
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .hud-label {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .hud-value {
+      font-size: 1.6rem;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .accent-gold { color: var(--accent-gold); }
+    .accent-cyan { color: var(--accent-cyan); }
+
+    .control-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .status-badge {
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 6px;
+      background: rgba(56, 189, 248, 0.1);
+      color: var(--accent-cyan);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+    }
+
+    .control-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn {
+      padding: 9px 16px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      border: none;
+      transition: transform 0.1s ease;
+    }
+
+    .btn:active { transform: scale(0.96); }
+
+    .btn-primary {
+      background: var(--accent-gold);
+      color: #0f172a;
+    }
+
+    .btn-primary:hover { background: #fde047; }
+
+    .btn-secondary {
+      background: #1e293b;
+      color: var(--text-primary);
+      border: 1px solid #334155;
+    }
+
+    .cabinet-board {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      background: linear-gradient(180deg, #162032 0%, #0f172a 100%);
+      padding: 24px;
+      border-radius: 16px;
+      border: 2px solid #26334d;
+      box-shadow: inset 0 10px 30px rgba(0, 0, 0, 0.65);
+      cursor: crosshair;
+    }
+
+    .hole-slot {
+      position: relative;
+      height: 140px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+    }
+
+    .hole-mask {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      overflow: hidden;
+      border-radius: 50% 50% 42% 42% / 25% 25% 32% 32%;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+    }
+
+    .hole-pit {
+      position: absolute;
+      bottom: 0;
+      width: 88%;
+      height: 44px;
+      background: radial-gradient(ellipse at center, var(--hole-interior) 55%, #1e293b 100%);
+      border: 4px solid #334155;
+      border-radius: 50%;
+      z-index: 1;
+    }
+
+    .mole {
+      position: relative;
+      z-index: 2;
+      width: 90px;
+      height: 105px;
+      transform: translateY(115%);
+      transition: transform 0.15s cubic-bezier(0.22, 1, 0.36, 1);
+      cursor: pointer;
+      pointer-events: none;
+    }
+
+    .mole.up {
+      transform: translateY(8%);
+      pointer-events: auto;
+    }
+
+    .mole.whacked {
+      transform: translateY(35%) scale(0.9, 0.78);
+      filter: brightness(1.3);
+      pointer-events: none;
+    }
+
+    .hole-lip {
+      position: absolute;
+      bottom: -2px;
+      width: 90%;
+      height: 22px;
+      border-bottom: 6px solid #334155;
+      border-radius: 0 0 50% 50%;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .taunt-bubble {
+      position: absolute;
+      bottom: 110%;
+      left: 50%;
+      transform: translateX(-50%) scale(0.7);
+      background: #ffffff;
+      color: #0f172a;
+      font-weight: 900;
+      font-size: 0.75rem;
+      line-height: 1.25;
+      text-align: center;
+      padding: 8px 12px;
+      border-radius: 12px;
+      border: 3px solid #0f172a;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+      width: 160px;
+      z-index: 30;
+      pointer-events: none;
+      animation: popTaunt 1.5s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+    }
+
+    .taunt-bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -9px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 9px 7px 0;
+      border-style: solid;
+      border-color: #ffffff transparent;
+    }
+
+    @keyframes popTaunt {
+      0% { opacity: 0; transform: translateX(-50%) translateY(12px) scale(0.5); }
+      15% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1.04); }
+      25% { transform: translateX(-50%) translateY(0) scale(1); }
+      80% { opacity: 1; transform: translateX(-50%) translateY(-4px) scale(1); }
+      100% { opacity: 0; transform: translateX(-50%) translateY(-16px) scale(0.85); }
+    }
+
+    .score-pop {
+      position: absolute;
+      bottom: 75%;
+      left: 50%;
+      transform: translateX(-50%);
+      font-weight: 900;
+      font-size: 1.25rem;
+      z-index: 25;
+      pointer-events: none;
+      animation: floatUp 0.75s ease-out forwards;
+    }
+
+    @keyframes floatUp {
+      0% { opacity: 1; transform: translateX(-50%) translateY(0) scale(0.8); }
+      100% { opacity: 0; transform: translateX(-50%) translateY(-40px) scale(1.15); }
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 8, 15, 0.82);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-overlay.hidden { display: none; }
+
+    .modal-card {
+      background: var(--cabinet-bg);
+      border: 2px solid var(--cabinet-border);
+      border-radius: 16px;
+      padding: 28px;
+      width: 90%;
+      max-width: 380px;
+      text-align: center;
+    }
+
+    .modal-taunt {
+      color: var(--accent-gold);
+      font-style: italic;
+      margin: 10px 0 20px;
+      font-weight: 600;
+    }
+
+    .modal-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      background: #090d16;
+      padding: 14px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+
+    .modal-stats span {
+      display: block;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    .modal-stats strong {
+      font-size: 1.25rem;
+    }
+  </style>
 </head>
 <body>
   <div class="arcade-wrapper">
-    <!-- Top HUD -->
     <header class="hud-panel">
       <div class="hud-stat">
         <span class="hud-label">SCORE</span>
@@ -28,40 +328,483 @@
       </div>
     </header>
 
-    <!-- Controls & Status Bar -->
     <div class="control-bar">
-      <div class="status-badge" id="state-badge">STATE: IDLE</div>
+      <div class="status-badge" id="state-badge">STATE: READY</div>
       <div class="control-actions">
-        <button id="voice-btn" class="btn btn-secondary" title="Toggle Mole Voice Taunts">
-          Voice Taunts: ON
-        </button>
-        <button id="mute-btn" class="btn btn-secondary" title="Toggle Sound Effects">
-          SFX: ON
-        </button>
+        <button id="voice-btn" class="btn btn-secondary">Voice: ON</button>
+        <button id="mute-btn" class="btn btn-secondary">SFX: ON</button>
         <button id="start-btn" class="btn btn-primary">START GAME</button>
       </div>
     </div>
 
-    <!-- Playfield Cabinet -->
-    <main class="cabinet-board" id="game-board">
-      <!-- 9 Holes injected dynamically via game.js based on CONFIG.gridSize -->
-    </main>
+    <main class="cabinet-board" id="game-board"></main>
 
-    <!-- Post-Game Summary Modal -->
     <div id="modal-overlay" class="modal-overlay hidden">
       <div class="modal-card">
-        <h2 id="modal-title">ROUND COMPLETE</h2>
-        <p id="modal-subtitle" class="modal-taunt">"Alrighty then! Not bad for a human!"</p>
+        <h2>ROUND COMPLETE</h2>
+        <p id="modal-subtitle" class="modal-taunt">"Alrighty then! Not bad!"</p>
         <div class="modal-stats">
           <div><span>Final Score</span><strong id="final-score">0</strong></div>
           <div><span>Accuracy</span><strong id="final-accuracy">0%</strong></div>
-          <div><span>Max Streak</span><strong id="final-streak">0</strong></div>
+          <div><span>Streak</span><strong id="final-streak">0</strong></div>
         </div>
         <button id="play-again-btn" class="btn btn-primary">PLAY AGAIN</button>
       </div>
     </div>
   </div>
 
-  <script type="module" src="js/game.js"></script>
+  <script>
+    const CONFIG = {
+      gridSize: 9,
+      gameDuration: 30,
+      baseSpawnInterval: [650, 1150],
+      baseStayDuration: [650, 1100],
+      minStayDuration: 380,
+      difficultyRampFactor: 0.92,
+      maxConcurrentMoles: 2,
+      points: { regular: 100, golden: 300, bomb: -150 },
+      probabilities: { regular: 0.72, golden: 0.15, bomb: 0.13 },
+      tauntCooldownMs: 850
+    };
+
+    const TAUNT_BANK = {
+      activeMiss: [
+        "ALRIGHTY THEN! Hitting dirt now, are we?!",
+        "LA-HOOO-ZUH-HER!",
+        "B-E-A-UTIFUL swing... at nothing!",
+        "Ssssmokin'! ...The air, not me!",
+        "Like a glove! ...Except you missed!",
+        "Excuse me, your poor aim is showing!",
+        "Is your monitor even turned on?!"
+      ],
+      passiveEscape: [
+        "Too slow! I took a whole nap!",
+        "Re-he-he-heally thought you'd hit me?",
+        "Alrighty then, I'll see myself out!",
+        "Zero reflexes detected!",
+        "You had three business days to click me!",
+        "Good-y for me! Terrible for you!"
+      ],
+      streakBroken: [
+        "AAAAND the combo is GONE!",
+        "Choked under zero pressure!",
+        "There goes that fragile streak!"
+      ]
+    };
+
+    class TauntManager {
+      constructor() {
+        this.bags = { activeMiss: [], passiveEscape: [], streakBroken: [] };
+        this.lastTauntTime = 0;
+      }
+      getTaunt(category = 'activeMiss') {
+        const now = performance.now();
+        if (now - this.lastTauntTime < CONFIG.tauntCooldownMs) return null;
+        this.lastTauntTime = now;
+
+        if (!this.bags[category] || this.bags[category].length === 0) {
+          this.bags[category] = [...TAUNT_BANK[category]].sort(() => Math.random() - 0.5);
+        }
+        return this.bags[category].pop();
+      }
+    }
+
+    class AudioEngine {
+      constructor() {
+        this.ctx = null;
+        this.muted = false;
+        this.voiceEnabled = true;
+      }
+      _initContext() {
+        if (!this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioCtx();
+        }
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+      }
+      playPop() {
+        if (this.muted) return;
+        this._initContext();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(220, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(520, this.ctx.currentTime + 0.09);
+        gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.09);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.09);
+      }
+      playHit(type) {
+        if (this.muted) return;
+        this._initContext();
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        if (type === 'golden') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(587, now);
+          osc.frequency.setValueAtTime(880, now + 0.07);
+          gain.gain.setValueAtTime(0.25, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.25);
+        } else if (type === 'bomb') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(130, now);
+          osc.frequency.linearRampToValueAtTime(45, now + 0.3);
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.3);
+        } else {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(300, now);
+          osc.frequency.exponentialRampToValueAtTime(90, now + 0.12);
+          gain.gain.setValueAtTime(0.25, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.12);
+        }
+      }
+      playWhiff() {
+        if (this.muted) return;
+        this._initContext();
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.linearRampToValueAtTime(160, now + 0.18);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.18);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.18);
+      }
+      speakTaunt(text) {
+        if (this.muted || !this.voiceEnabled || !('speechSynthesis' in window)) return;
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.pitch = 1.45 + Math.random() * 0.25;
+        utterance.rate = 1.25;
+        utterance.volume = 0.85;
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    class WhackAMoleGame {
+      constructor() {
+        this.isPlaying = false;
+        this.taunts = new TauntManager();
+        this.audio = new AudioEngine();
+
+        this.score = 0;
+        this.highScore = Number(localStorage.getItem('wam_pro_highscore')) || 0;
+        this.timeLeft = CONFIG.gameDuration;
+        this.streak = 0;
+        this.maxStreak = 0;
+        this.totalClicks = 0;
+        this.successfulHits = 0;
+
+        this.activeHoles = new Map();
+        this.spawnTimer = null;
+        this.clockTimer = null;
+        this.speedMultiplier = 1;
+
+        this.boardEl = document.getElementById('game-board');
+        this.scoreEl = document.getElementById('score-display');
+        this.timerEl = document.getElementById('timer-display');
+        this.streakEl = document.getElementById('streak-display');
+        this.highScoreEl = document.getElementById('highscore-display');
+        this.stateBadgeEl = document.getElementById('state-badge');
+        this.startBtn = document.getElementById('start-btn');
+        this.muteBtn = document.getElementById('mute-btn');
+        this.voiceBtn = document.getElementById('voice-btn');
+        this.modalEl = document.getElementById('modal-overlay');
+
+        this._initBoard();
+        this._bindEvents();
+        this._updateHUD();
+      }
+
+      _initBoard() {
+        this.boardEl.innerHTML = '';
+        for (let i = 0; i < CONFIG.gridSize; i++) {
+          const slot = document.createElement('div');
+          slot.className = 'hole-slot';
+          slot.dataset.index = i;
+          slot.innerHTML = `
+            <div class="hole-mask">
+              <div class="hole-pit"></div>
+              <div class="mole" data-index="${i}" data-type="regular">
+                ${this._getMoleSVG('regular')}
+              </div>
+              <div class="hole-lip"></div>
+            </div>
+          `;
+          this.boardEl.appendChild(slot);
+        }
+      }
+
+      _getMoleSVG(type) {
+        const crown = type === 'golden'
+          ? `<polygon points="28,18 38,4 50,15 62,4 72,18" fill="#facc15" stroke="#0f172a" stroke-width="2.5"/>`
+          : '';
+        const bodyColor = type === 'golden' ? '#eab308' : type === 'bomb' ? '#e11d48' : '#854d0e';
+        const snoutColor = type === 'bomb' ? '#fda4af' : '#fef08a';
+
+        return `
+          <svg viewBox="0 0 100 110" width="100%" height="100%">
+            ${crown}
+            <path d="M18,105 L18,48 C18,20 82,20 82,48 L82,105 Z" fill="${bodyColor}" stroke="#0f172a" stroke-width="4"/>
+            <circle cx="37" cy="46" r="6" fill="#0f172a"/>
+            <circle cx="63" cy="46" r="6" fill="#0f172a"/>
+            <circle cx="35" cy="44" r="2" fill="#ffffff"/>
+            <circle cx="61" cy="44" r="2" fill="#ffffff"/>
+            <ellipse cx="50" cy="62" rx="18" ry="12" fill="${snoutColor}" stroke="#0f172a" stroke-width="3"/>
+            <ellipse cx="50" cy="57" rx="6" ry="4" fill="#0f172a"/>
+            <rect x="44" y="72" width="5" height="7" rx="1" fill="#ffffff" stroke="#0f172a" stroke-width="1.5"/>
+            <rect x="51" y="72" width="5" height="7" rx="1" fill="#ffffff" stroke="#0f172a" stroke-width="1.5"/>
+          </svg>
+        `;
+      }
+
+      _bindEvents() {
+        this.boardEl.addEventListener('pointerdown', (e) => this._handleBoardClick(e));
+        this.startBtn.addEventListener('click', () => this.startGame());
+        document.getElementById('play-again-btn').addEventListener('click', () => {
+          this.modalEl.classList.add('hidden');
+          this.startGame();
+        });
+        this.muteBtn.addEventListener('click', () => {
+          this.audio.muted = !this.audio.muted;
+          this.muteBtn.textContent = `SFX: ${this.audio.muted ? 'OFF' : 'ON'}`;
+        });
+        this.voiceBtn.addEventListener('click', () => {
+          this.audio.voiceEnabled = !this.audio.voiceEnabled;
+          this.voiceBtn.textContent = `Voice: ${this.audio.voiceEnabled ? 'ON' : 'OFF'}`;
+        });
+      }
+
+      startGame() {
+        if (this.isPlaying) return;
+        this._clearAllTimers();
+        this.isPlaying = true;
+        this.score = 0;
+        this.timeLeft = CONFIG.gameDuration;
+        this.streak = 0;
+        this.maxStreak = 0;
+        this.totalClicks = 0;
+        this.successfulHits = 0;
+        this.speedMultiplier = 1;
+
+        this.stateBadgeEl.textContent = 'STATE: PLAYING';
+        this.startBtn.disabled = true;
+        this.startBtn.textContent = 'IN PROGRESS...';
+        this._updateHUD();
+
+        this.clockTimer = setInterval(() => {
+          this.timeLeft--;
+          if (this.timeLeft % 6 === 0 && this.timeLeft > 0) {
+            this.speedMultiplier *= CONFIG.difficultyRampFactor;
+          }
+          this._updateHUD();
+          if (this.timeLeft <= 0) this.endGame();
+        }, 1000);
+
+        this._scheduleNextSpawn();
+      }
+
+      _scheduleNextSpawn() {
+        if (!this.isPlaying) return;
+        const [min, max] = CONFIG.baseSpawnInterval;
+        const delay = (min + Math.random() * (max - min)) * this.speedMultiplier;
+        this.spawnTimer = setTimeout(() => {
+          this._spawnMole();
+          this._scheduleNextSpawn();
+        }, delay);
+      }
+
+      _spawnMole() {
+        if (!this.isPlaying || this.activeHoles.size >= CONFIG.maxConcurrentMoles) return;
+
+        const available = [];
+        for (let i = 0; i < CONFIG.gridSize; i++) {
+          if (!this.activeHoles.has(i)) available.push(i);
+        }
+        if (available.length === 0) return;
+
+        const holeIdx = available[Math.floor(Math.random() * available.length)];
+        const r = Math.random();
+        const type = r < CONFIG.probabilities.golden ? 'golden' : r < (CONFIG.probabilities.golden + CONFIG.probabilities.bomb) ? 'bomb' : 'regular';
+
+        const slotEl = this.boardEl.children[holeIdx];
+        const moleEl = slotEl.querySelector('.mole');
+
+        moleEl.dataset.type = type;
+        moleEl.dataset.whacked = 'false';
+        moleEl.innerHTML = this._getMoleSVG(type);
+        moleEl.classList.remove('whacked');
+        moleEl.classList.add('up');
+
+        this.audio.playPop();
+
+        const [minStay, maxStay] = CONFIG.baseStayDuration;
+        const stayTime = Math.max(CONFIG.minStayDuration, (minStay + Math.random() * (maxStay - minStay)) * this.speedMultiplier);
+
+        const hideTimeout = setTimeout(() => {
+          const wasWhacked = moleEl.dataset.whacked === 'true';
+          moleEl.classList.remove('up');
+          this.activeHoles.delete(holeIdx);
+
+          if (!wasWhacked && type !== 'bomb' && this.isPlaying) {
+            const hadCombo = this.streak >= 3;
+            this.streak = 0;
+            this._updateHUD();
+            this._triggerRageBait(holeIdx, hadCombo ? 'streakBroken' : 'passiveEscape');
+          }
+        }, stayTime);
+
+        this.activeHoles.set(holeIdx, hideTimeout);
+      }
+
+      _handleBoardClick(e) {
+        if (!this.isPlaying) return;
+        this.totalClicks++;
+
+        const moleEl = e.target.closest('.mole');
+        const slotEl = e.target.closest('.hole-slot');
+
+        if (moleEl && moleEl.classList.contains('up') && moleEl.dataset.whacked !== 'true') {
+          const holeIdx = Number(moleEl.dataset.index);
+          const type = moleEl.dataset.type;
+
+          moleEl.dataset.whacked = 'true';
+          moleEl.classList.add('whacked');
+          clearTimeout(this.activeHoles.get(holeIdx));
+
+          setTimeout(() => {
+            moleEl.classList.remove('up', 'whacked');
+            this.activeHoles.delete(holeIdx);
+          }, 180);
+
+          this._processHit(holeIdx, type);
+        } else {
+          const targetHoleIdx = slotEl ? Number(slotEl.dataset.index) : 0;
+          const hadCombo = this.streak >= 3;
+          this.streak = 0;
+          this.audio.playWhiff();
+          this._updateHUD();
+          this._triggerRageBait(targetHoleIdx, hadCombo ? 'streakBroken' : 'activeMiss');
+        }
+      }
+
+      _processHit(holeIdx, type) {
+        this.successfulHits++;
+        this.audio.playHit(type);
+
+        if (type === 'bomb') {
+          this.streak = 0;
+          this.score = Math.max(0, this.score + CONFIG.points.bomb);
+          this._showScorePop(holeIdx, `${CONFIG.points.bomb}`, '#f43f5e');
+          this._triggerRageBait(holeIdx, 'streakBroken');
+        } else {
+          this.streak++;
+          if (this.streak > this.maxStreak) this.maxStreak = this.streak;
+          const multiplier = this.streak >= 6 ? 2 : this.streak >= 3 ? 1.5 : 1;
+          const earned = Math.round(CONFIG.points[type] * multiplier);
+          this.score += earned;
+          this._showScorePop(holeIdx, `+${earned}`, type === 'golden' ? '#facc15' : '#38bdf8');
+        }
+
+        if (this.score > this.highScore) {
+          this.highScore = this.score;
+          localStorage.setItem('wam_pro_highscore', this.highScore);
+        }
+        this._updateHUD();
+      }
+
+      _triggerRageBait(holeIdx, category) {
+        const insult = this.taunts.getTaunt(category);
+        if (!insult) return;
+
+        const slotEl = this.boardEl.children[holeIdx];
+        if (!slotEl) return;
+
+        const existing = slotEl.querySelector('.taunt-bubble');
+        if (existing) existing.remove();
+
+        const bubble = document.createElement('div');
+        bubble.className = 'taunt-bubble';
+        bubble.textContent = insult;
+        slotEl.appendChild(bubble);
+
+        this.audio.speakTaunt(insult);
+        setTimeout(() => bubble.remove(), 1500);
+      }
+
+      _showScorePop(holeIdx, text, color) {
+        const slotEl = this.boardEl.children[holeIdx];
+        const pop = document.createElement('div');
+        pop.className = 'score-pop';
+        pop.style.color = color;
+        pop.textContent = text;
+        slotEl.appendChild(pop);
+        setTimeout(() => pop.remove(), 750);
+      }
+
+      _updateHUD() {
+        this.scoreEl.textContent = String(this.score).padStart(4, '0');
+        this.highScoreEl.textContent = String(this.highScore).padStart(4, '0');
+        this.timerEl.textContent = `${this.timeLeft}s`;
+        this.streakEl.textContent = `${this.streak}x`;
+      }
+
+      _clearAllTimers() {
+        clearInterval(this.clockTimer);
+        clearTimeout(this.spawnTimer);
+        this.activeHoles.forEach((t) => clearTimeout(t));
+        this.activeHoles.clear();
+      }
+
+      endGame() {
+        this._clearAllTimers();
+        this.isPlaying = false;
+        this.stateBadgeEl.textContent = 'STATE: GAME OVER';
+        this.startBtn.disabled = false;
+        this.startBtn.textContent = 'START GAME';
+
+        this.boardEl.querySelectorAll('.mole.up').forEach((m) => m.classList.remove('up'));
+
+        const accuracy = this.totalClicks > 0
+          ? Math.round((this.successfulHits / this.totalClicks) * 100)
+          : 0;
+
+        document.getElementById('final-score').textContent = this.score;
+        document.getElementById('final-accuracy').textContent = `${accuracy}%`;
+        document.getElementById('final-streak').textContent = `${this.maxStreak}x`;
+        document.getElementById('modal-subtitle').textContent =
+          accuracy < 50
+            ? '"LA-HOOO-ZUH-HER! Did you play with your eyes closed?!"'
+            : '"Alrighty then! Ssssmokin\' reflexes!"';
+
+        this.modalEl.classList.remove('hidden');
+      }
+    }
+
+    window.onload = () => {
+      new WhackAMoleGame();
+    };
+  </script>
 </body>
 </html>
