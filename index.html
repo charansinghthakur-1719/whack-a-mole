@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Whac-A-Mole // Pro Arcade Edition</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="arcade-wrapper">
+    <!-- Top HUD -->
+    <header class="hud-panel">
+      <div class="hud-stat">
+        <span class="hud-label">SCORE</span>
+        <span id="score-display" class="hud-value accent-gold">0000</span>
+      </div>
+      <div class="hud-stat">
+        <span class="hud-label">TIME LEFT</span>
+        <span id="timer-display" class="hud-value">30s</span>
+      </div>
+      <div class="hud-stat">
+        <span class="hud-label">STREAK</span>
+        <span id="streak-display" class="hud-value accent-cyan">0x</span>
+      </div>
+      <div class="hud-stat">
+        <span class="hud-label">HIGH SCORE</span>
+        <span id="highscore-display" class="hud-value">0000</span>
+      </div>
+    </header>
+
+    <!-- Controls & Status Bar -->
+    <div class="control-bar">
+      <div class="status-badge" id="state-badge">STATE: IDLE</div>
+      <div class="control-actions">
+        <button id="voice-btn" class="btn btn-secondary" title="Toggle Mole Voice Taunts">
+          Voice Taunts: ON
+        </button>
+        <button id="mute-btn" class="btn btn-secondary" title="Toggle Sound Effects">
+          SFX: ON
+        </button>
+        <button id="start-btn" class="btn btn-primary">START GAME</button>
+      </div>
+    </div>
+
+    <!-- Playfield Cabinet -->
+    <main class="cabinet-board" id="game-board">
+      <!-- 9 Holes injected dynamically via game.js based on CONFIG.gridSize -->
+    </main>
+
+    <!-- Post-Game Summary Modal -->
+    <div id="modal-overlay" class="modal-overlay hidden">
+      <div class="modal-card">
+        <h2 id="modal-title">ROUND COMPLETE</h2>
+        <p id="modal-subtitle" class="modal-taunt">"Alrighty then! Not bad for a human!"</p>
+        <div class="modal-stats">
+          <div><span>Final Score</span><strong id="final-score">0</strong></div>
+          <div><span>Accuracy</span><strong id="final-accuracy">0%</strong></div>
+          <div><span>Max Streak</span><strong id="final-streak">0</strong></div>
+        </div>
+        <button id="play-again-btn" class="btn btn-primary">PLAY AGAIN</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/game.js"></script>
+</body>
+</html>
