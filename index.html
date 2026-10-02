@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>WHAC-A-MOLE // OVERDRIVE ARCADE</title>
+  <title>WHAC-A-MOLE // BLOOD MOON OVERDRIVE</title>
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Fredoka:wght@600;700;800&family=Orbitron:wght@800;900&display=swap" rel="stylesheet">
   <style>
     * {
@@ -24,9 +24,10 @@
       justify-content: center;
       align-items: center;
       cursor: none;
+      perspective: 1300px;
     }
 
-    /* Fullscreen Particle & Shockwave Canvas */
+    /* Fullscreen Particle & Lightning Canvas */
     #fx-canvas {
       position: fixed;
       inset: 0;
@@ -36,31 +37,115 @@
       z-index: 150;
     }
 
-    /* Screen Flash Overlay (TNT Blast / Fever Trigger) */
+    /* Screen Flash Overlay */
     #screen-flash {
       position: fixed;
       inset: 0;
       pointer-events: none;
       z-index: 140;
       opacity: 0;
-      transition: opacity 0.08s ease-out;
+      transition: opacity 0.1s ease-out;
     }
 
-    /* Dark Industrial Arcade Room Background */
+    /* Freeze Power-Up Frost Overlay */
+    #frost-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 135;
+      opacity: 0;
+      background:
+        radial-gradient(circle at center, transparent 45%, rgba(56, 189, 248, 0.45) 85%, rgba(186, 230, 253, 0.75) 100%);
+      box-shadow: inset 0 0 90px #38bdf8;
+      transition: opacity 0.25s ease;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding-top: 18px;
+    }
+    #frost-overlay.active {
+      opacity: 1;
+    }
+    .frost-banner {
+      font-family: 'Bangers', cursive;
+      font-size: 2.2rem;
+      letter-spacing: 0.08em;
+      color: #e0f2fe;
+      background: rgba(12, 74, 110, 0.85);
+      border: 3px solid #38bdf8;
+      padding: 6px 24px;
+      border-radius: 999px;
+      text-shadow: 0 0 15px #38bdf8;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+    }
+
+    /* Cracked Screen Glass Effect Overlay (Triggered on TNT Hit) */
+    #cracked-glass {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 160;
+      opacity: 0;
+      transition: opacity 0.35s ease-out;
+      filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.65));
+    }
+    #cracked-glass.shattered {
+      opacity: 1;
+      transition: none;
+    }
+
+    /* Dynamic Day -> Dusk -> Blood Moon Arcade Room */
     .arcade-room {
       position: fixed;
       inset: 0;
       background:
-        radial-gradient(circle at 50% 20%, rgba(56, 189, 248, 0.14) 0%, transparent 65%),
-        linear-gradient(180deg, #0b111a 0%, #141e2b 48%, #0e4f5c 49%, #093038 53%, #0e151f 54%, #06090e 100%);
+        radial-gradient(circle at 50% 20%, rgba(56, 189, 248, 0.16) 0%, transparent 65%),
+        linear-gradient(180deg, #0b1320 0%, #162436 48%, #0e4f5c 49%, #093038 53%, #0e151f 54%, #06090e 100%);
       z-index: 0;
-      transition: filter 0.3s ease;
+      transition: background 1.2s ease;
     }
 
-    .arcade-room.fever-bg {
+    /* Stage 2: Sunset Dusk (29s - 16s) */
+    .arcade-room.dusk-phase {
       background:
-        radial-gradient(circle at 50% 25%, rgba(244, 63, 94, 0.28) 0%, rgba(250, 204, 21, 0.12) 45%, transparent 75%),
-        linear-gradient(180deg, #1a0b16 0%, #2b1422 48%, #701a75 49%, #4a044e 53%, #15091e 54%, #06040a 100%);
+        radial-gradient(circle at 50% 22%, rgba(249, 115, 22, 0.25) 0%, transparent 65%),
+        linear-gradient(180deg, #1f1224 0%, #3b1c32 48%, #7c2d12 49%, #431407 53%, #160d18 54%, #07050a 100%);
+    }
+
+    /* Stage 3: Blood Moon Finale (Last 15s) */
+    .arcade-room.blood-moon-phase {
+      background:
+        radial-gradient(circle at 50% 18%, rgba(225, 29, 72, 0.42) 0%, rgba(136, 19, 55, 0.2) 55%, transparent 75%),
+        linear-gradient(180deg, #1a050d 0%, #310814 48%, #881337 49%, #4c0519 53%, #140409 54%, #050103 100%);
+    }
+
+    /* Rising Blood Moon Celestial Orb */
+    .blood-moon-orb {
+      position: fixed;
+      top: 14%;
+      left: 50%;
+      width: 280px;
+      height: 280px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #fda4af 0%, #e11d48 45%, #881337 90%);
+      box-shadow: 0 0 80px #e11d48, 0 0 160px rgba(225, 29, 72, 0.6);
+      transform: translate(-50%, 140px) scale(0.65);
+      opacity: 0;
+      transition: transform 1.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 1.5s ease;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .arcade-room.dusk-phase .blood-moon-orb {
+      opacity: 0.45;
+      transform: translate(-50%, 60px) scale(0.85);
+      background: radial-gradient(circle at 35% 35%, #fde047 0%, #f97316 55%, #9a3412 95%);
+      box-shadow: 0 0 60px #f97316;
+    }
+
+    .arcade-room.blood-moon-phase .blood-moon-orb {
+      opacity: 0.9;
+      transform: translate(-50%, -35px) scale(1.1);
     }
 
     /* Hit-Stop Freeze Frame State */
@@ -69,31 +154,32 @@
       transition: none !important;
     }
 
-    /* Main Arcade Machine Cabinet */
+    /* Main 3D Tiltable Arcade Cabinet */
     .cabinet-machine {
       position: relative;
       z-index: 10;
       width: 95vw;
-      max-width: 920px;
+      max-width: 940px;
       background: linear-gradient(180deg, #5c3a21 0%, #382110 100%);
       border: 6px solid #1a0e06;
       border-radius: 28px 28px 18px 18px;
       box-shadow:
-        0 35px 95px rgba(0,0,0,0.95),
+        0 40px 100px rgba(0,0,0,0.95),
         inset 0 2px 6px rgba(255, 255, 255, 0.22),
         inset 0 -12px 25px rgba(0,0,0,0.85);
-      padding: 16px 24px 24px;
+      padding: 14px 22px 22px;
       display: flex;
       flex-direction: column;
       align-items: center;
+      transform-style: preserve-3d;
       will-change: transform;
     }
 
     .cabinet-machine.fever-mode {
       border-color: #facc15;
       box-shadow:
-        0 0 45px rgba(250, 204, 21, 0.55),
-        0 0 90px rgba(244, 63, 94, 0.35),
+        0 0 50px rgba(250, 204, 21, 0.55),
+        0 0 95px rgba(244, 63, 94, 0.35),
         inset 0 0 25px rgba(250, 204, 21, 0.35);
     }
 
@@ -103,27 +189,27 @@
       background: linear-gradient(180deg, #422612 0%, #241409 100%);
       border: 4px solid #140b04;
       border-radius: 18px;
-      padding: 12px 18px;
+      padding: 10px 16px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.75);
-      margin-bottom: 10px;
+      margin-bottom: 8px;
+      transform: translateZ(18px);
     }
 
     .scoreboard-screen {
       background: radial-gradient(circle at center, #162231 0%, #070b12 100%);
       border: 3px solid #38bdf8;
       border-radius: 12px;
-      padding: 10px 18px;
+      padding: 8px 16px;
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       align-items: center;
       text-align: center;
       box-shadow: 0 0 20px rgba(56, 189, 248, 0.25), inset 0 0 25px rgba(0, 0, 0, 0.95);
-      transition: border-color 0.2s, box-shadow 0.2s;
     }
 
     .scoreboard-screen.red-alert {
       border-color: #f43f5e;
-      box-shadow: 0 0 28px rgba(244, 63, 94, 0.6), inset 0 0 25px rgba(244, 63, 94, 0.25);
+      box-shadow: 0 0 30px rgba(244, 63, 94, 0.7), inset 0 0 25px rgba(244, 63, 94, 0.3);
       animation: alertPulse 0.45s infinite alternate;
     }
 
@@ -133,7 +219,7 @@
     }
 
     .stat-label {
-      font-size: 0.78rem;
+      font-size: 0.72rem;
       letter-spacing: 0.08em;
       color: #94a3b8;
       text-transform: uppercase;
@@ -143,22 +229,15 @@
 
     .stat-val {
       font-family: 'Orbitron', sans-serif;
-      font-size: 2.1rem;
+      font-size: 1.95rem;
       font-weight: 900;
       color: #ffffff;
       text-shadow: 0 4px 10px rgba(0,0,0,0.8);
     }
 
-    .stat-val.gold {
-      color: #facc15;
-      text-shadow: 0 0 16px rgba(250, 204, 21, 0.55);
-    }
-
-    .stat-val.combo-hot {
-      color: #38bdf8;
-      text-shadow: 0 0 16px rgba(56, 189, 248, 0.65);
-    }
-
+    .stat-val.gold { color: #facc15; text-shadow: 0 0 14px rgba(250, 204, 21, 0.5); }
+    .stat-val.combo-hot { color: #38bdf8; text-shadow: 0 0 14px rgba(56, 189, 248, 0.6); }
+    .stat-val.coins-amber { color: #fbbf24; text-shadow: 0 0 14px rgba(251, 191, 36, 0.55); }
     .stat-val.fever-text {
       color: #f43f5e;
       text-shadow: 0 0 20px #f43f5e;
@@ -167,21 +246,22 @@
 
     @keyframes feverBounce {
       from { transform: scale(1); }
-      to { transform: scale(1.14); }
+      to { transform: scale(1.12); }
     }
 
     /* Speaker & Control Bay */
     .speaker-bay {
-      width: 96%;
+      width: 98%;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 4px 12px 12px;
+      padding: 4px 10px 10px;
+      transform: translateZ(14px);
     }
 
     .speaker-vent {
-      width: 56px;
-      height: 56px;
+      width: 48px;
+      height: 48px;
       border-radius: 50%;
       background: repeating-linear-gradient(90deg, #070a10 0px, #070a10 5px, #1e293b 5px, #1e293b 9px);
       border: 4px solid #1e293b;
@@ -190,7 +270,7 @@
 
     .arcade-controls {
       display: flex;
-      gap: 12px;
+      gap: 10px;
       align-items: center;
       flex-wrap: wrap;
       justify-content: center;
@@ -199,8 +279,8 @@
     .arcade-btn {
       font-family: 'Bangers', cursive;
       letter-spacing: 0.06em;
-      font-size: 1.3rem;
-      padding: 8px 24px;
+      font-size: 1.25rem;
+      padding: 8px 20px;
       border-radius: 50px;
       border: 3px solid #0f172a;
       cursor: pointer;
@@ -216,33 +296,43 @@
     .btn-start {
       background: linear-gradient(180deg, #fde047 0%, #eab308 100%);
       color: #0f172a;
-      font-size: 1.45rem;
+      font-size: 1.4rem;
+    }
+
+    .btn-shop {
+      background: linear-gradient(180deg, #38bdf8 0%, #0284c7 100%);
+      color: #0f172a;
+      font-size: 1.3rem;
     }
 
     .btn-toggle {
       background: linear-gradient(180deg, #334155 0%, #1e293b 100%);
       color: #f8fafc;
-      font-size: 1.05rem;
-      padding: 8px 16px;
+      font-size: 1rem;
+      padding: 7px 14px;
     }
 
     /* Archetype Legend Pills */
     .legend-bar {
       display: flex;
-      gap: 14px;
-      margin-bottom: 10px;
-      font-size: 0.78rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 8px;
+      font-size: 0.74rem;
       font-weight: 700;
       color: #cbd5e1;
-      background: rgba(9, 13, 22, 0.65);
+      background: rgba(9, 13, 22, 0.72);
       padding: 5px 16px;
       border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.12);
+      transform: translateZ(10px);
     }
-    .legend-item span { font-weight: 800; }
     .leg-troll { color: #a3e635; }
-    .leg-boss { color: #38bdf8; }
+    .leg-boss { color: #f97316; }
     .leg-jackpot { color: #facc15; }
+    .leg-freeze { color: #38bdf8; }
+    .leg-lightning { color: #c084fc; }
     .leg-tnt { color: #f43f5e; }
 
     /* Metallic Bezel & Grassy Board */
@@ -251,28 +341,36 @@
       background: linear-gradient(180deg, #475569 0%, #1e293b 100%);
       border: 5px solid #0f172a;
       border-radius: 22px;
-      padding: 16px;
+      padding: 15px;
       position: relative;
       box-shadow: inset 0 6px 15px rgba(0,0,0,0.85), 0 8px 20px rgba(0,0,0,0.7);
+      transform: translateZ(8px);
     }
 
     .grass-board {
       width: 100%;
-      background: radial-gradient(circle at 50% 35%, #84cc16 0%, #4d7c0f 58%, #2ec4b600 100%), #365314;
+      background: radial-gradient(circle at 50% 35%, #84cc16 0%, #4d7c0f 58%, #365314 100%);
       border: 5px solid #1a2e05;
       border-radius: 14px;
-      padding: 16px 26px 24px;
+      padding: 14px 24px 22px;
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 14px 26px;
+      gap: 14px 24px;
       box-shadow: inset 0 18px 40px rgba(0,0,0,0.68);
       position: relative;
+      transition: background 1.2s ease, border-color 1.2s ease;
+    }
+
+    /* Blood Moon Crimson Turf */
+    .grass-board.blood-turf {
+      background: radial-gradient(circle at 50% 35%, #9f1239 0%, #4c0519 60%, #1f030b 100%);
+      border-color: #881337;
     }
 
     /* Individual Hole Cell */
     .hole-cell {
       position: relative;
-      height: 132px;
+      height: 128px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -283,7 +381,7 @@
       position: absolute;
       bottom: 18px;
       width: 88%;
-      height: 52px;
+      height: 50px;
       background: radial-gradient(ellipse at center, #060301 48%, #271509 85%, #452612 100%);
       border-radius: 50%;
       border: 5px solid #5c3419;
@@ -295,7 +393,7 @@
       position: absolute;
       bottom: 24px;
       width: 92%;
-      height: 128px;
+      height: 124px;
       overflow: hidden;
       display: flex;
       justify-content: center;
@@ -305,16 +403,18 @@
     }
 
     .mole-character {
-      width: 118px;
-      height: 120px;
+      width: 114px;
+      height: 116px;
       transform: translateY(115%);
       transition: transform 0.19s cubic-bezier(0.22, 1, 0.36, 1);
       position: relative;
       cursor: none;
     }
 
-    .mole-character.up {
-      transform: translateY(6%);
+    .mole-character.up { transform: translateY(6%); }
+
+    .mole-character.frozen-mole {
+      filter: hue-rotate(155deg) saturate(1.6) brightness(1.2) drop-shadow(0 0 10px #38bdf8);
     }
 
     .mole-character.boss-hit {
@@ -342,7 +442,6 @@
       transition: transform 0.06s ease-out;
     }
 
-    /* Boss HP Bar Above Hole */
     .boss-hp-bar {
       position: absolute;
       top: -6px;
@@ -353,15 +452,9 @@
       padding: 3px 6px;
       border-radius: 6px;
       border: 2px solid #f8fafc;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.6);
     }
     .boss-hp-bar.hidden { display: none; }
-    .hp-pip {
-      width: 14px;
-      height: 8px;
-      background: #ef4444;
-      border-radius: 2px;
-    }
+    .hp-pip { width: 14px; height: 8px; background: #ef4444; border-radius: 2px; }
     .hp-pip.lost { background: #334155; }
 
     .dirt-rim-front {
@@ -373,18 +466,16 @@
       border-radius: 0 0 50% 50%;
       z-index: 3;
       pointer-events: none;
-      filter: drop-shadow(0 4px 3px rgba(0,0,0,0.55));
     }
 
     .hole-number {
       position: absolute;
       bottom: -8px;
       font-family: 'Bangers', cursive;
-      font-size: 1.3rem;
+      font-size: 1.25rem;
       letter-spacing: 0.06em;
       color: #ffffff;
       -webkit-text-stroke: 1.5px #0f172a;
-      text-shadow: 0 3px 4px rgba(0,0,0,0.85);
       z-index: 4;
       pointer-events: none;
     }
@@ -395,7 +486,7 @@
       bottom: 94%;
       left: 50%;
       transform: translateX(-50%);
-      width: 225px;
+      width: 220px;
       z-index: 50;
       pointer-events: none;
       animation: comicPopIn 0.24s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
@@ -425,15 +516,14 @@
     .comic-header {
       display: block;
       font-family: 'Bangers', cursive;
-      font-size: 1.3rem;
-      letter-spacing: 0.05em;
+      font-size: 1.25rem;
       color: #ef4444;
       -webkit-text-stroke: 0.8px #0f172a;
     }
 
     .comic-body {
       font-weight: 800;
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       line-height: 1.2;
       color: #0f172a;
     }
@@ -444,14 +534,13 @@
       100% { opacity: 1; transform: translateX(-50%) scale(1) rotate(0deg); }
     }
 
-    /* Floating Combat Text (+100, CLANG!, BOOM!) */
     .floating-pts {
       position: absolute;
       bottom: 86%;
       left: 50%;
       transform: translateX(-50%);
       font-family: 'Bangers', cursive;
-      font-size: 2.2rem;
+      font-size: 2.1rem;
       letter-spacing: 0.04em;
       -webkit-text-stroke: 1.8px #0f172a;
       text-shadow: 0 5px 10px rgba(0,0,0,0.9);
@@ -486,7 +575,7 @@
       transform: translate(-35%, -40%) rotate(-55deg) scale(1.08);
     }
 
-    /* Post-Game Summary Modal */
+    /* Modals (Game Over & Mallet Shop) */
     .modal-backdrop {
       position: fixed;
       inset: 0;
@@ -496,16 +585,17 @@
       align-items: center;
       z-index: 300;
       backdrop-filter: blur(6px);
+      cursor: auto;
     }
     .modal-backdrop.hidden { display: none; }
 
     .modal-box {
-      background: linear-gradient(180deg, #472b16 0%, #241409 100%);
+      background: linear-gradient(180deg, #331d0e 0%, #1a0f07 100%);
       border: 5px solid #facc15;
       border-radius: 24px;
-      padding: 30px;
-      width: 90%;
-      max-width: 460px;
+      padding: 26px;
+      width: 92%;
+      max-width: 620px;
       text-align: center;
       color: #fff;
       box-shadow: 0 25px 70px rgba(0,0,0,0.95);
@@ -513,15 +603,15 @@
 
     .modal-box h2 {
       font-family: 'Bangers', cursive;
-      font-size: 2.8rem;
+      font-size: 2.6rem;
       color: #facc15;
       letter-spacing: 0.05em;
     }
 
     .modal-quote {
-      font-size: 1.05rem;
+      font-size: 1rem;
       color: #fde047;
-      margin: 8px 0 20px;
+      margin: 6px 0 18px;
     }
 
     .modal-grid {
@@ -529,18 +619,104 @@
       grid-template-columns: repeat(3, 1fr);
       gap: 10px;
       background: rgba(0,0,0,0.5);
-      padding: 16px;
+      padding: 14px;
       border-radius: 14px;
-      margin-bottom: 22px;
+      margin-bottom: 20px;
+    }
+
+    /* Shop Grid */
+    .shop-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin: 16px 0;
+      text-align: left;
+    }
+
+    .shop-card {
+      background: rgba(15, 23, 42, 0.85);
+      border: 3px solid #334155;
+      border-radius: 16px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .shop-card.equipped {
+      border-color: #facc15;
+      box-shadow: 0 0 20px rgba(250, 204, 21, 0.3);
+    }
+
+    .shop-card-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .shop-icon {
+      width: 58px;
+      height: 58px;
+      background: #090d16;
+      border-radius: 12px;
+      padding: 6px;
+      flex-shrink: 0;
+      border: 2px solid #1e293b;
+    }
+
+    .shop-title {
+      font-family: 'Bangers', cursive;
+      font-size: 1.35rem;
+      color: #f8fafc;
+      letter-spacing: 0.04em;
+    }
+
+    .shop-perk {
+      font-size: 0.78rem;
+      color: #38bdf8;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
+    .shop-action-btn {
+      font-family: 'Bangers', cursive;
+      font-size: 1.1rem;
+      padding: 7px 14px;
+      border-radius: 10px;
+      border: 2px solid #0f172a;
+      cursor: pointer;
+      width: 100%;
+      letter-spacing: 0.05em;
     }
   </style>
 </head>
 <body>
   <canvas id="fx-canvas"></canvas>
   <div id="screen-flash"></div>
-  <div class="arcade-room" id="room-bg"></div>
 
-  <!-- Main Arcade Cabinet -->
+  <!-- Freeze Power-Up Overlay -->
+  <div id="frost-overlay">
+    <div class="frost-banner">❄️ CHRONO FREEZE ACTIVE! TIME STOPPED! ❄️</div>
+  </div>
+
+  <!-- Cracked Screen Glass Effect on TNT Explosion -->
+  <svg id="cracked-glass" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+    <g stroke="rgba(255,255,255,0.88)" stroke-width="3" fill="none">
+      <!-- Center Impact Spiderweb -->
+      <path d="M500,500 L120,80 M500,500 L890,110 M500,500 L960,540 M500,500 L820,940 M500,500 L180,910 M500,500 L40,440 M500,500 L480,30 M500,500 L560,970"/>
+      <path d="M380,370 L500,320 L630,380 L670,510 L610,640 L480,670 L360,610 L330,480 Z" stroke-width="2.2"/>
+      <path d="M240,220 L490,160 L750,240 L830,520 L720,790 L490,840 L260,760 L170,460 Z" stroke-width="1.8"/>
+      <path d="M630,380 L780,330 M360,610 L210,670 M380,370 L250,310 M610,640 L750,700"/>
+    </g>
+  </svg>
+
+  <!-- Dynamic Arcade Room + Rising Blood Moon -->
+  <div class="arcade-room" id="room-bg">
+    <div class="blood-moon-orb"></div>
+  </div>
+
+  <!-- 3D Tiltable Arcade Cabinet -->
   <div class="cabinet-machine" id="cabinet">
     <div class="marquee-housing">
       <div class="scoreboard-screen" id="scoreboard">
@@ -549,16 +725,16 @@
           <span id="score-val" class="stat-val gold">0000</span>
         </div>
         <div>
-          <span class="stat-label">TIME LEFT</span>
+          <span class="stat-label">TIME / PHASE</span>
           <span id="time-val" class="stat-val">45s</span>
         </div>
         <div>
-          <span class="stat-label">STREAK / MODE</span>
+          <span class="stat-label">STREAK</span>
           <span id="streak-val" class="stat-val combo-hot">0x</span>
         </div>
         <div>
-          <span class="stat-label">HIGH SCORE</span>
-          <span id="high-val" class="stat-val">0000</span>
+          <span class="stat-label">ARCADE COINS</span>
+          <span id="coin-val" class="stat-val coins-amber">🪙 0</span>
         </div>
       </div>
     </div>
@@ -567,6 +743,7 @@
       <div class="speaker-vent"></div>
       <div class="arcade-controls">
         <button id="start-btn" class="arcade-btn btn-start">START GAME</button>
+        <button id="shop-btn" class="arcade-btn btn-shop">🛒 MALLET SHOP</button>
         <button id="music-btn" class="arcade-btn btn-toggle">MUSIC: ON</button>
         <button id="sfx-btn" class="arcade-btn btn-toggle">SFX: ON</button>
       </div>
@@ -574,10 +751,12 @@
     </div>
 
     <div class="legend-bar">
-      <div class="legend-item"><span class="leg-troll">● TROLL:</span> +100</div>
-      <div class="legend-item"><span class="leg-boss">● BOSS (3 HITS):</span> +500</div>
-      <div class="legend-item"><span class="leg-jackpot">● JACKPOT:</span> +350</div>
-      <div class="legend-item"><span class="leg-tnt">● TNT BOMB:</span> -200 (DON'T HIT!)</div>
+      <div><span class="leg-troll">● TROLL:</span> +100</div>
+      <div><span class="leg-boss">● BOSS (3 HP):</span> +500</div>
+      <div><span class="leg-jackpot">● JACKPOT:</span> +350</div>
+      <div><span class="leg-freeze">❄️ FREEZE:</span> STOPS TIME</div>
+      <div><span class="leg-lightning">⚡ LIGHTNING:</span> ZAPS ALL</div>
+      <div><span class="leg-tnt">💣 TNT:</span> -200 & CRACKS SCREEN</div>
     </div>
 
     <div class="playfield-bezel">
@@ -585,66 +764,139 @@
     </div>
   </div>
 
-  <!-- 3D Wooden & Red Rubber Mallet Cursor -->
-  <div id="mallet-cursor">
-    <svg viewBox="0 0 140 140" width="100%" height="100%">
-      <defs>
-        <linearGradient id="woodHead" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#f59e0b"/>
-          <stop offset="50%" stop-color="#b45309"/>
-          <stop offset="100%" stop-color="#78350f"/>
-        </linearGradient>
-        <linearGradient id="redCap" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#f43f5e"/>
-          <stop offset="100%" stop-color="#9f1239"/>
-        </linearGradient>
-      </defs>
-      <rect x="68" y="55" width="16" height="78" rx="7" transform="rotate(-35 76 90)" fill="#b45309" stroke="#1e1108" stroke-width="3.5"/>
-      <g transform="rotate(-35 52 46)">
-        <rect x="18" y="16" width="68" height="44" rx="8" fill="url(#woodHead)" stroke="#1e1108" stroke-width="3.5"/>
-        <rect x="10" y="18" width="13" height="40" rx="5" fill="url(#redCap)" stroke="#1e1108" stroke-width="3"/>
-        <rect x="81" y="18" width="13" height="40" rx="5" fill="url(#redCap)" stroke="#1e1108" stroke-width="3"/>
-      </g>
-    </svg>
+  <!-- Custom 3D Mallet Cursor -->
+  <div id="mallet-cursor"></div>
+
+  <!-- MALLET SHOP MODAL -->
+  <div id="shop-modal" class="modal-backdrop hidden">
+    <div class="modal-box">
+      <h2>🛒 ARCADE MALLET ARMORY</h2>
+      <p class="modal-quote">Unlock hammers with special powers! Your Bank: <strong id="shop-coin-bank" style="color:#facc15">🪙 0</strong></p>
+      <div class="shop-grid" id="shop-items"></div>
+      <div style="display:flex; justify-content:center; gap:12px; margin-top:14px;">
+        <button id="demo-coins-btn" class="arcade-btn btn-toggle">+1,500 DEMO COINS (TEST ALL)</button>
+        <button id="close-shop-btn" class="arcade-btn btn-start">DONE</button>
+      </div>
+    </div>
   </div>
 
-  <!-- Post-Round Summary Modal -->
+  <!-- POST-ROUND MODAL -->
   <div id="modal" class="modal-backdrop hidden">
     <div class="modal-box">
-      <h2 id="modal-title">ROUND OVER!</h2>
-      <p id="modal-taunt" class="modal-quote">"What a wild round!"</p>
+      <h2 id="modal-title">ROUND COMPLETE!</h2>
+      <p id="modal-taunt" class="modal-quote">"What an explosive round!"</p>
       <div class="modal-grid">
         <div>
-          <span class="stat-label">SCORE</span>
-          <strong id="final-score" class="stat-val gold" style="font-size:1.65rem">0</strong>
+          <span class="stat-label">FINAL SCORE</span>
+          <strong id="final-score" class="stat-val gold" style="font-size:1.6rem">0</strong>
         </div>
         <div>
-          <span class="stat-label">ACCURACY</span>
-          <strong id="final-acc" class="stat-val" style="font-size:1.65rem">0%</strong>
+          <span class="stat-label">COINS EARNED</span>
+          <strong id="final-coins" class="stat-val coins-amber" style="font-size:1.6rem">+0</strong>
         </div>
         <div>
           <span class="stat-label">MAX STREAK</span>
-          <strong id="final-streak" class="stat-val combo-hot" style="font-size:1.65rem">0x</strong>
+          <strong id="final-streak" class="stat-val combo-hot" style="font-size:1.6rem">0x</strong>
         </div>
       </div>
-      <button id="replay-btn" class="arcade-btn btn-start">PLAY AGAIN</button>
+      <div style="display:flex; justify-content:center; gap:12px;">
+        <button id="open-shop-end-btn" class="arcade-btn btn-shop">🛒 MALLET SHOP</button>
+        <button id="replay-btn" class="arcade-btn btn-start">PLAY AGAIN</button>
+      </div>
     </div>
   </div>
 
   <script>
-    // --- 1. CONFIGURATION & ARCHETYPES ---
+    // --- 1. MALLET SKINS & SUPERPOWERS CATALOG ---
+    const MALLETS = {
+      classic: {
+        id: 'classic',
+        name: 'Classic Arcade Mallet',
+        cost: 0,
+        perk: 'Balanced wooden barrel mallet with rubber strike pads.',
+        damage: 1,
+        stayBonus: 0,
+        scoreMult: 1,
+        svg: `
+          <svg viewBox="0 0 140 140" width="100%" height="100%">
+            <rect x="68" y="55" width="16" height="78" rx="7" transform="rotate(-35 76 90)" fill="#b45309" stroke="#1e1108" stroke-width="3.5"/>
+            <g transform="rotate(-35 52 46)">
+              <rect x="18" y="16" width="68" height="44" rx="8" fill="#d97706" stroke="#1e1108" stroke-width="3.5"/>
+              <rect x="10" y="18" width="13" height="40" rx="5" fill="#e11d48" stroke="#1e1108" stroke-width="3"/>
+              <rect x="81" y="18" width="13" height="40" rx="5" fill="#e11d48" stroke="#1e1108" stroke-width="3"/>
+            </g>
+          </svg>`
+      },
+      squeaky: {
+        id: 'squeaky',
+        name: 'Squeaky Carnival Toy',
+        cost: 500,
+        perk: 'PASSIVE: Moles stay up +400ms longer + hilarious squeak SFX!',
+        damage: 1,
+        stayBonus: 400,
+        scoreMult: 1,
+        svg: `
+          <svg viewBox="0 0 140 140" width="100%" height="100%">
+            <rect x="68" y="55" width="16" height="78" rx="7" transform="rotate(-35 76 90)" fill="#38bdf8" stroke="#0f172a" stroke-width="3.5"/>
+            <g transform="rotate(-35 52 46)">
+              <rect x="16" y="14" width="72" height="48" rx="16" fill="#fde047" stroke="#0f172a" stroke-width="3.5"/>
+              <ellipse cx="12" cy="38" rx="8" ry="20" fill="#f43f5e" stroke="#0f172a" stroke-width="3"/>
+              <ellipse cx="92" cy="38" rx="8" ry="20" fill="#f43f5e" stroke="#0f172a" stroke-width="3"/>
+            </g>
+          </svg>`
+      },
+      mjolnir: {
+        id: 'mjolnir',
+        name: "Thor's Mjolnir",
+        cost: 1200,
+        perk: 'PASSIVE: Deals 2x Armor Damage to Boss Moles + Thunder Strikes!',
+        damage: 2,
+        stayBonus: 0,
+        scoreMult: 1.15,
+        svg: `
+          <svg viewBox="0 0 140 140" width="100%" height="100%">
+            <rect x="68" y="55" width="15" height="76" rx="5" transform="rotate(-35 76 90)" fill="#78350f" stroke="#0f172a" stroke-width="3.5"/>
+            <g transform="rotate(-35 52 46)">
+              <polygon points="14,14 90,14 96,24 96,52 90,62 14,62 8,52 8,24" fill="#94a3b8" stroke="#0f172a" stroke-width="3.5"/>
+              <path d="M35,25 L52,38 L44,44 L65,54" stroke="#38bdf8" stroke-width="3.5" fill="none"/>
+            </g>
+          </svg>`
+      },
+      golden: {
+        id: 'golden',
+        name: '24K Golden Sledge',
+        cost: 2500,
+        perk: 'PASSIVE: +50% Bonus Score & Coins on every single whack!',
+        damage: 2,
+        stayBonus: 150,
+        scoreMult: 1.5,
+        svg: `
+          <svg viewBox="0 0 140 140" width="100%" height="100%">
+            <rect x="68" y="55" width="16" height="78" rx="7" transform="rotate(-35 76 90)" fill="#713f12" stroke="#0f172a" stroke-width="3.5"/>
+            <g transform="rotate(-35 52 46)">
+              <rect x="14" y="14" width="76" height="48" rx="8" fill="#facc15" stroke="#0f172a" stroke-width="3.5"/>
+              <rect x="8" y="16" width="12" height="44" rx="4" fill="#fef08a" stroke="#0f172a" stroke-width="3"/>
+              <rect x="84" y="16" width="12" height="44" rx="4" fill="#fef08a" stroke="#0f172a" stroke-width="3"/>
+              <polygon points="52,24 56,34 66,34 58,40 61,50 52,44 43,50 46,40 38,34 48,34" fill="#ffffff"/>
+            </g>
+          </svg>`
+      }
+    };
+
     const CONFIG = {
       holes: 9,
       roundSeconds: 45,
-      spawnInterval: [700, 1250],
+      spawnInterval: [680, 1180],
       maxConcurrent: 3,
-      laughDuration: 1150,
-      tauntCooldown: 700,
+      laughDuration: 1100,
+      tauntCooldown: 650,
       archetypes: {
-        troll:   { weight: 0.52, hp: 1, points: 100, stay: [1550, 2200] },
-        boss:    { weight: 0.16, hp: 3, points: 500, stay: [2600, 3200] },
-        jackpot: { weight: 0.16, hp: 1, points: 350, stay: [1150, 1550] },
-        tnt:     { weight: 0.16, hp: 1, points: -200, stay: [1500, 2000] }
+        troll:     { weight: 0.44, hp: 1, points: 100, stay: [1550, 2150] },
+        boss:      { weight: 0.14, hp: 3, points: 500, stay: [2600, 3200] },
+        jackpot:   { weight: 0.12, hp: 1, points: 350, stay: [1200, 1600] },
+        freeze:    { weight: 0.08, hp: 1, points: 150, stay: [1350, 1800] },
+        lightning: { weight: 0.08, hp: 1, points: 200, stay: [1350, 1800] },
+        tnt:       { weight: 0.14, hp: 1, points: -200, stay: [1500, 2000] }
       }
     };
 
@@ -654,18 +906,17 @@
       { header: "SIGH...", text: "Try opening your eyes next time?" },
       { header: "SWING & A MISS!", text: "Dirt: 1 — You: 0!" },
       { header: "CHOKED!", text: "My grandma swings faster than that!" },
-      { header: "HEHEHE!", text: "You had 3 business days to hit me!" },
-      { header: "WHOOPS!", text: "Were you aiming for my shadow?!" },
-      { header: "PATHETIC!", text: "Zero reflexes detected!" }
+      { header: "HEHEHE!", text: "You had 3 business days to hit me!" }
     ];
 
-    // --- 2. 60FPS CANVAS PARTICLE & SHOCKWAVE ENGINE ---
+    // --- 2. PARTICLE & CHAIN-LIGHTNING ENGINE ---
     class ParticleEngine {
       constructor() {
         this.canvas = document.getElementById('fx-canvas');
         this.ctx = this.canvas.getContext('2d');
         this.particles = [];
         this.rings = [];
+        this.bolts = [];
         this.resize();
         window.addEventListener('resize', () => this.resize());
         this._loop();
@@ -676,61 +927,72 @@
         this.canvas.height = window.innerHeight;
       }
 
+      spawnLightningBolt(x1, y1, x2, y2) {
+        const points = [{ x: x1, y: y1 }];
+        const segments = 7;
+        for (let i = 1; i < segments; i++) {
+          const t = i / segments;
+          points.push({
+            x: x1 + (x2 - x1) * t + (Math.random() - 0.5) * 48,
+            y: y1 + (y2 - y1) * t + (Math.random() - 0.5) * 48
+          });
+        }
+        points.push({ x: x2, y: y2 });
+        this.bolts.push({ points, alpha: 1 });
+      }
+
       spawnBurst(x, y, preset = 'normal') {
-        // Shockwave ring
         const ringColors = {
           normal: '#fde047',
           bossClang: '#38bdf8',
           bossKO: '#f97316',
           jackpot: '#facc15',
+          freeze: '#38bdf8',
+          lightning: '#c084fc',
           tnt: '#ef4444',
           whiff: '#94a3b8'
         };
         this.rings.push({
           x, y,
-          r: 8,
-          maxR: preset === 'tnt' ? 190 : preset === 'bossKO' ? 150 : 95,
+          r: 10,
+          maxR: preset === 'tnt' || preset === 'lightning' ? 210 : 110,
           color: ringColors[preset] || '#ffffff',
           alpha: 1,
           lineWidth: preset === 'tnt' ? 10 : 6
         });
 
-        const count = preset === 'tnt' ? 42 : preset === 'jackpot' || preset === 'bossKO' ? 32 : 18;
+        const count = preset === 'tnt' ? 40 : 24;
         for (let i = 0; i < count; i++) {
           const angle = Math.random() * Math.PI * 2;
-          const speed = (2 + Math.random() * (preset === 'tnt' ? 15 : 10));
-          let color = '#a16207';
+          const speed = 2 + Math.random() * 12;
+          let color = '#fde047';
           let shape = 'circle';
-          let size = 4 + Math.random() * 5;
 
-          if (preset === 'normal') {
-            color = ['#fde047', '#f97316', '#78350f', '#84cc16'][i % 4];
-            shape = i % 3 === 0 ? 'star' : 'circle';
-          } else if (preset === 'bossClang') {
-            color = ['#38bdf8', '#e2e8f0', '#94a3b8'][i % 3];
+          if (preset === 'freeze') {
+            color = ['#38bdf8', '#e0f2fe', '#7dd3fc'][i % 3];
             shape = 'shard';
-          } else if (preset === 'bossKO') {
-            color = ['#facc15', '#f97316', '#38bdf8', '#ffffff'][i % 4];
-            shape = i % 2 === 0 ? 'star' : 'shard';
-            size = 6 + Math.random() * 6;
+          } else if (preset === 'lightning') {
+            color = ['#c084fc', '#fde047', '#38bdf8'][i % 3];
+            shape = 'star';
           } else if (preset === 'jackpot') {
             color = ['#facc15', '#fef08a', '#eab308'][i % 3];
             shape = 'coin';
-            size = 7 + Math.random() * 4;
           } else if (preset === 'tnt') {
-            color = ['#ef4444', '#f97316', '#facc15', '#1e293b'][i % 4];
-            shape = 'circle';
-            size = 6 + Math.random() * 9;
+            color = ['#ef4444', '#f97316', '#ffffff'][i % 3];
+            shape = 'shard';
+          } else {
+            color = ['#fde047', '#f97316', '#84cc16'][i % 3];
+            shape = i % 2 === 0 ? 'star' : 'circle';
           }
 
           this.particles.push({
             x, y,
             vx: Math.cos(angle) * speed,
-            vy: Math.sin(angle) * speed - (preset === 'jackpot' ? 6 : 3),
-            gravity: 0.42,
+            vy: Math.sin(angle) * speed - 4,
+            gravity: 0.4,
             color,
             shape,
-            size,
+            size: 5 + Math.random() * 5,
             alpha: 1,
             rot: Math.random() * 6.28,
             vRot: (Math.random() - 0.5) * 0.3
@@ -741,7 +1003,30 @@
       _loop() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        // Update Shockwave Rings
+        // Render Chain Lightning Bolts
+        for (let i = this.bolts.length - 1; i >= 0; i--) {
+          const b = this.bolts[i];
+          b.alpha -= 0.06;
+          if (b.alpha <= 0) {
+            this.bolts.splice(i, 1);
+            continue;
+          }
+          this.ctx.save();
+          this.ctx.beginPath();
+          b.points.forEach((pt, idx) => {
+            if (idx === 0) this.ctx.moveTo(pt.x, pt.y);
+            else this.ctx.lineTo(pt.x, pt.y);
+          });
+          this.ctx.strokeStyle = '#fde047';
+          this.ctx.shadowColor = '#c084fc';
+          this.ctx.shadowBlur = 20;
+          this.ctx.lineWidth = 6;
+          this.ctx.globalAlpha = b.alpha;
+          this.ctx.stroke();
+          this.ctx.restore();
+        }
+
+        // Render Shockwave Rings
         for (let i = this.rings.length - 1; i >= 0; i--) {
           const r = this.rings[i];
           r.r += (r.maxR - r.r) * 0.22;
@@ -760,44 +1045,28 @@
           this.ctx.restore();
         }
 
-        // Update Debris Particles
+        // Render Debris Particles
         for (let i = this.particles.length - 1; i >= 0; i--) {
           const p = this.particles[i];
           p.x += p.vx;
           p.y += p.vy;
           p.vy += p.gravity;
           p.rot += p.vRot;
-          p.alpha -= 0.024;
-
+          p.alpha -= 0.025;
           if (p.alpha <= 0) {
             this.particles.splice(i, 1);
             continue;
           }
-
           this.ctx.save();
           this.ctx.globalAlpha = Math.max(0, p.alpha);
           this.ctx.translate(p.x, p.y);
           this.ctx.rotate(p.rot);
           this.ctx.fillStyle = p.color;
-
           if (p.shape === 'shard') {
             this.ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
           } else if (p.shape === 'coin') {
             this.ctx.beginPath();
             this.ctx.ellipse(0, 0, p.size, p.size * 0.65, 0, 0, Math.PI * 2);
-            this.ctx.fill();
-            this.ctx.strokeStyle = '#713f12';
-            this.ctx.lineWidth = 1.5;
-            this.ctx.stroke();
-          } else if (p.shape === 'star') {
-            this.ctx.beginPath();
-            for (let j = 0; j < 5; j++) {
-              this.ctx.lineTo(Math.cos((18 + j * 72) * Math.PI / 180) * p.size,
-                              -Math.sin((18 + j * 72) * Math.PI / 180) * p.size);
-              this.ctx.lineTo(Math.cos((54 + j * 72) * Math.PI / 180) * (p.size * 0.45),
-                              -Math.sin((54 + j * 72) * Math.PI / 180) * (p.size * 0.45));
-            }
-            this.ctx.closePath();
             this.ctx.fill();
           } else {
             this.ctx.beginPath();
@@ -811,7 +1080,7 @@
       }
     }
 
-    // --- 3. DYNAMIC TEMPO SEQUENCER & HEAVY BASS SFX ENGINE ---
+    // --- 3. SOUND & DYNAMIC TEMPO ENGINE ---
     class ArcadeSoundSystem {
       constructor() {
         this.ctx = null;
@@ -843,133 +1112,135 @@
         clearTimeout(this.musicTimer);
       }
 
-      setTempo(bpm) {
-        this.bpm = bpm;
-      }
+      setTempo(bpm) { this.bpm = bpm; }
 
       _scheduleTick() {
         if (!this.isPlayingMusic) return;
-        const stepDurationMs = (60 / this.bpm / 4) * 1000; // 16th note steps
-
-        if (this.musicEnabled && this.ctx) {
-          this._playSequencerStep(this.stepIndex);
-        }
+        const stepMs = (60 / this.bpm / 4) * 1000;
+        if (this.musicEnabled && this.ctx) this._playStep(this.stepIndex);
         this.stepIndex = (this.stepIndex + 1) % 16;
-        this.musicTimer = setTimeout(() => this._scheduleTick(), stepDurationMs);
+        this.musicTimer = setTimeout(() => this._scheduleTick(), stepMs);
       }
 
-      _playSequencerStep(step) {
+      _playStep(step) {
         const now = this.ctx.currentTime;
-        // Driving 4-on-the-floor Arcade Kick on 0, 4, 8, 12
         if (step % 4 === 0) {
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
           osc.type = 'sine';
           osc.frequency.setValueAtTime(125, now);
           osc.frequency.exponentialRampToValueAtTime(38, now + 0.11);
-          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.setValueAtTime(0.18, now);
           gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
           osc.connect(gain);
           gain.connect(this.ctx.destination);
           osc.start(now);
           osc.stop(now + 0.12);
         }
-
-        // Off-beat Synthwave Bassline
         const bassNotes = [110, 110, 130.8, 110, 146.8, 130.8, 98, 110];
         if (step % 2 === 1) {
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
           osc.type = 'sawtooth';
-          const freq = bassNotes[Math.floor(step / 2) % bassNotes.length];
-          osc.frequency.setValueAtTime(freq, now);
-          gain.gain.setValueAtTime(0.065, now);
+          osc.frequency.setValueAtTime(bassNotes[Math.floor(step / 2) % bassNotes.length], now);
+          gain.gain.setValueAtTime(0.055, now);
           gain.gain.exponentialRampToValueAtTime(0.008, now + 0.1);
           osc.connect(gain);
           gain.connect(this.ctx.destination);
           osc.start(now);
           osc.stop(now + 0.1);
         }
-
-        // High-energy Fever / Red-Alert Arpeggio when BPM >= 132
-        if (this.bpm >= 132 && step % 2 === 0) {
-          const arp = [440, 523.25, 659.25, 880];
-          const osc = this.ctx.createOscillator();
-          const gain = this.ctx.createGain();
-          osc.type = 'triangle';
-          osc.frequency.setValueAtTime(arp[(step / 2) % 4], now);
-          gain.gain.setValueAtTime(0.05, now);
-          gain.gain.exponentialRampToValueAtTime(0.005, now + 0.08);
-          osc.connect(gain);
-          gain.connect(this.ctx.destination);
-          osc.start(now);
-          osc.stop(now + 0.08);
-        }
       }
 
-      // Punchy Sub-Bass Mallet Hit
-      playHeavyWhack() {
+      playMalletHit(malletId = 'classic') {
         if (!this.sfxEnabled) return;
         this._init();
         const now = this.ctx.currentTime;
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(380, now);
-        osc.frequency.exponentialRampToValueAtTime(52, now + 0.16);
-        gain.gain.setValueAtTime(0.45, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.16);
+
+        if (malletId === 'squeaky') {
+          // High-pitched rubber toy squeak!
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(780, now);
+          osc.frequency.exponentialRampToValueAtTime(1480, now + 0.06);
+          osc.frequency.exponentialRampToValueAtTime(920, now + 0.14);
+          gain.gain.setValueAtTime(0.28, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.15);
+        } else {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(380, now);
+          osc.frequency.exponentialRampToValueAtTime(52, now + 0.16);
+          gain.gain.setValueAtTime(0.45, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.16);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.16);
+        }
+      }
+
+      playFreeze() {
+        if (!this.sfxEnabled) return;
+        this._init();
+        const now = this.ctx.currentTime;
+        [880, 1174.6, 1567.9, 2093].forEach((freq, i) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + i * 0.05);
+          gain.gain.setValueAtTime(0.2, now + i * 0.05);
+          gain.gain.exponentialRampToValueAtTime(0.005, now + i * 0.05 + 0.35);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + i * 0.05);
+          osc.stop(now + i * 0.05 + 0.35);
+        });
+      }
+
+      playLightning() {
+        if (!this.sfxEnabled) return;
+        this._init();
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(920, now);
+        osc.frequency.exponentialRampToValueAtTime(110, now + 0.28);
+        gain.gain.setValueAtTime(0.35, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.28);
         osc.connect(gain);
         gain.connect(this.ctx.destination);
         osc.start(now);
-        osc.stop(now + 0.16);
+        osc.stop(now + 0.28);
       }
 
-      // Metallic Anvil Clang for Boss Armor
       playArmorClang() {
         if (!this.sfxEnabled) return;
         this._init();
         const now = this.ctx.currentTime;
-        [540, 815, 1220].forEach((freq) => {
+        [540, 815].forEach((freq) => {
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
           osc.type = 'square';
           osc.frequency.setValueAtTime(freq, now);
-          gain.gain.setValueAtTime(0.12, now);
-          gain.gain.exponentialRampToValueAtTime(0.005, now + 0.18);
+          gain.gain.setValueAtTime(0.14, now);
+          gain.gain.exponentialRampToValueAtTime(0.005, now + 0.16);
           osc.connect(gain);
           gain.connect(this.ctx.destination);
           osc.start(now);
-          osc.stop(now + 0.18);
+          osc.stop(now + 0.16);
         });
       }
 
-      // Jackpot Coin Cascade
-      playJackpot() {
+      playExplosionAndShatter() {
         if (!this.sfxEnabled) return;
         this._init();
         const now = this.ctx.currentTime;
-        [587.33, 783.99, 987.77, 1174.66].forEach((freq, idx) => {
-          const osc = this.ctx.createOscillator();
-          const gain = this.ctx.createGain();
-          osc.type = 'triangle';
-          osc.frequency.setValueAtTime(freq, now + idx * 0.045);
-          gain.gain.setValueAtTime(0.22, now + idx * 0.045);
-          gain.gain.exponentialRampToValueAtTime(0.008, now + idx * 0.045 + 0.22);
-          osc.connect(gain);
-          gain.connect(this.ctx.destination);
-          osc.start(now + idx * 0.045);
-          osc.stop(now + idx * 0.045 + 0.22);
-        });
-      }
-
-      // Massive TNT Detonation
-      playExplosion() {
-        if (!this.sfxEnabled) return;
-        this._init();
-        const now = this.ctx.currentTime;
-
-        // White Noise Blast
         const bufferSize = this.ctx.sampleRate * 0.45;
         const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
         const data = buffer.getChannelData(0);
@@ -977,23 +1248,14 @@
 
         const noise = this.ctx.createBufferSource();
         noise.buffer = buffer;
-
-        const filter = this.ctx.createBiquadFilter();
-        filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(900, now);
-        filter.frequency.exponentialRampToValueAtTime(80, now + 0.45);
-
         const gain = this.ctx.createGain();
-        gain.gain.setValueAtTime(0.65, now);
+        gain.gain.setValueAtTime(0.6, now);
         gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
-
-        noise.connect(filter);
-        filter.connect(gain);
+        noise.connect(gain);
         gain.connect(this.ctx.destination);
         noise.start(now);
       }
 
-      // Mocking 3-Note Chuckle on Miss
       playLaughChuckle() {
         if (!this.sfxEnabled) return;
         this._init();
@@ -1004,7 +1266,7 @@
           osc.type = 'sawtooth';
           osc.frequency.setValueAtTime(520 - i * 55, now + offset);
           osc.frequency.exponentialRampToValueAtTime(340, now + offset + 0.065);
-          gain.gain.setValueAtTime(0.12, now + offset);
+          gain.gain.setValueAtTime(0.11, now + offset);
           gain.gain.linearRampToValueAtTime(0.01, now + offset + 0.065);
           osc.connect(gain);
           gain.connect(this.ctx.destination);
@@ -1014,105 +1276,56 @@
       }
     }
 
-    // --- 4. EXPRESSIVE MOLE ARCHETYPE SVG GENERATOR ---
+    // --- 4. EXPRESSIVE MOLE ARCHETYPES SVG (Including Freeze & Lightning!) ---
     function getMoleArchetypeSVG(type = 'troll', mood = 'normal', hp = 3) {
-      // Body & Fur Gradients per Archetype
       const bodyColors = {
-        troll:   ['#d97706', '#92400e', '#451a03'],
-        boss:    ['#475569', '#334155', '#0f172a'],
-        jackpot: ['#fde047', '#eab308', '#a16207'],
-        tnt:     ['#fb7185', '#e11d48', '#881337']
+        troll:     ['#d97706', '#92400e', '#451a03'],
+        boss:      ['#475569', '#334155', '#0f172a'],
+        jackpot:   ['#fde047', '#eab308', '#a16207'],
+        freeze:    ['#7dd3fc', '#0284c7', '#0c4a6e'],
+        lightning: ['#e879f9', '#9333ea', '#3b0764'],
+        tnt:       ['#fb7185', '#e11d48', '#881337']
       };
       const [c1, c2, c3] = bodyColors[type] || bodyColors.troll;
 
-      // Headgear per Archetype
       let headgear = '';
       if (type === 'troll') {
-        // Backwards Red Streetwear Cap
-        headgear = `
-          <path d="M22,38 C22,14 78,14 78,38 Z" fill="#ef4444" stroke="#0f172a" stroke-width="3.5"/>
-          <rect x="52" y="32" width="36" height="8" rx="4" fill="#b91c1c" stroke="#0f172a" stroke-width="3"/>
-        `;
+        headgear = `<path d="M22,38 C22,14 78,14 78,38 Z" fill="#ef4444" stroke="#0f172a" stroke-width="3.5"/>
+                    <rect x="52" y="32" width="36" height="8" rx="4" fill="#b91c1c" stroke="#0f172a" stroke-width="3"/>`;
       } else if (type === 'boss') {
-        // Heavy Spiked Gladiator / Welder Helmet with Damage Cracks
-        const crack = hp <= 2 ? `<path d="M42,16 L48,28 L40,36" stroke="#0f172a" stroke-width="3" fill="none"/>` : '';
-        const crack2 = hp === 1 ? `<path d="M64,18 L56,30 L66,38" stroke="#facc15" stroke-width="3" fill="none"/>` : '';
-        headgear = `
-          <polygon points="50,2 43,18 57,18" fill="#f43f5e" stroke="#0f172a" stroke-width="3"/>
-          <path d="M15,44 C15,12 85,12 85,44 Z" fill="#94a3b8" stroke="#0f172a" stroke-width="4"/>
-          <rect x="12" y="38" width="76" height="10" rx="4" fill="#64748b" stroke="#0f172a" stroke-width="3.5"/>
-          ${crack}${crack2}
-        `;
+        const crack = hp <= 2 ? `<path d="M42,16 L48,28 L40,36" stroke="#facc15" stroke-width="3.5" fill="none"/>` : '';
+        headgear = `<polygon points="50,2 43,18 57,18" fill="#f43f5e" stroke="#0f172a" stroke-width="3"/>
+                    <path d="M15,44 C15,12 85,12 85,44 Z" fill="#94a3b8" stroke="#0f172a" stroke-width="4"/>
+                    <rect x="12" y="38" width="76" height="10" rx="4" fill="#64748b" stroke="#0f172a" stroke-width="3.5"/>${crack}`;
       } else if (type === 'jackpot') {
-        // Royal Gold Crown + Neon Shutter Shades
-        headgear = `
-          <polygon points="22,34 28,10 42,24 50,6 58,24 72,10 78,34" fill="#fde047" stroke="#0f172a" stroke-width="3.5"/>
-          <circle cx="50" cy="18" r="4" fill="#f43f5e"/>
-          <circle cx="33" cy="22" r="3.5" fill="#38bdf8"/>
-          <circle cx="67" cy="22" r="3.5" fill="#38bdf8"/>
-        `;
+        headgear = `<polygon points="22,34 28,10 42,24 50,6 58,24 72,10 78,34" fill="#fde047" stroke="#0f172a" stroke-width="3.5"/>`;
+      } else if (type === 'freeze') {
+        // Icy Crystal Crown
+        headgear = `<polygon points="26,34 34,8 45,24 50,2 55,24 66,8 74,34" fill="#e0f2fe" stroke="#0284c7" stroke-width="3"/>`;
+      } else if (type === 'lightning') {
+        // Electric Lightning Bolt Crest
+        headgear = `<polygon points="54,0 36,22 50,22 42,40 66,16 52,16" fill="#fde047" stroke="#0f172a" stroke-width="2.5"/>`;
       } else if (type === 'tnt') {
-        // Sizzling Dynamite Plunger & Burning Fuse on Head
-        headgear = `
-          <rect x="42" y="8" width="16" height="28" rx="3" fill="#dc2626" stroke="#0f172a" stroke-width="3"/>
-          <text x="50" y="25" font-size="9" font-weight="900" text-anchor="middle" fill="#ffffff">TNT</text>
-          <path d="M50,8 Q58,-2 66,4" fill="none" stroke="#fde047" stroke-width="3"/>
-          <circle cx="67" cy="4" r="6" fill="#f97316"/>
-          <circle cx="67" cy="4" r="3" fill="#fef08a"/>
-        `;
+        headgear = `<rect x="42" y="8" width="16" height="28" rx="3" fill="#dc2626" stroke="#0f172a" stroke-width="3"/>
+                    <circle cx="67" cy="4" r="6" fill="#f97316"/>`;
       }
 
-      // Facial Expressions
       let face = '';
       if (mood === 'laughing') {
-        face = `
-          <path d="M27,44 L41,49 L27,54" fill="none" stroke="#0f172a" stroke-width="4.5" stroke-linecap="round"/>
-          <path d="M73,44 L59,49 L73,54" fill="none" stroke="#0f172a" stroke-width="4.5" stroke-linecap="round"/>
-          <ellipse cx="50" cy="61" rx="19" ry="11" fill="#fbbf24" stroke="#0f172a" stroke-width="3"/>
-          <path d="M31,69 Q50,95 69,69 Z" fill="#7f1d1d" stroke="#0f172a" stroke-width="3.5"/>
-          <path d="M40,82 Q50,74 60,82 Z" fill="#fb7185"/>
-        `;
+        face = `<path d="M27,44 L41,49 L27,54" fill="none" stroke="#0f172a" stroke-width="4.5" stroke-linecap="round"/>
+                <path d="M73,44 L59,49 L73,54" fill="none" stroke="#0f172a" stroke-width="4.5" stroke-linecap="round"/>
+                <ellipse cx="50" cy="61" rx="19" ry="11" fill="#fbbf24" stroke="#0f172a" stroke-width="3"/>
+                <path d="M31,69 Q50,95 69,69 Z" fill="#7f1d1d" stroke="#0f172a" stroke-width="3.5"/>`;
       } else if (mood === 'whacked') {
-        face = `
-          <text x="26" y="55" font-size="19" font-weight="900" fill="#0f172a">X</text>
-          <text x="59" y="55" font-size="19" font-weight="900" fill="#0f172a">X</text>
-          <ellipse cx="50" cy="64" rx="17" ry="10" fill="#fbbf24" stroke="#0f172a" stroke-width="3"/>
-          <circle cx="50" cy="77" r="7" fill="#0f172a"/>
-        `;
-      } else if (type === 'jackpot') {
-        // Cool Neon Shades + Dollar Smile
-        face = `
-          <rect x="24" y="40" width="23" height="13" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="2.5"/>
-          <rect x="53" y="40" width="23" height="13" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="2.5"/>
-          <line x1="47" y1="45" x2="53" y2="45" stroke="#38bdf8" stroke-width="3"/>
-          <ellipse cx="50" cy="63" rx="18" ry="11" fill="#fef08a" stroke="#0f172a" stroke-width="3"/>
-          <path d="M35,74 Q50,86 65,74" fill="none" stroke="#0f172a" stroke-width="4" stroke-linecap="round"/>
-        `;
-      } else if (type === 'boss') {
-        // Glowing Red War-Face
-        face = `
-          <path d="M25,42 L44,48" stroke="#0f172a" stroke-width="5" stroke-linecap="round"/>
-          <path d="M75,42 L56,48" stroke="#0f172a" stroke-width="5" stroke-linecap="round"/>
-          <circle cx="36" cy="50" r="6" fill="#ef4444"/>
-          <circle cx="64" cy="50" r="6" fill="#ef4444"/>
-          <ellipse cx="50" cy="64" rx="20" ry="12" fill="#94a3b8" stroke="#0f172a" stroke-width="3.5"/>
-          <polygon points="36,75 41,68 46,75" fill="#ffffff" stroke="#0f172a" stroke-width="2"/>
-          <polygon points="54,75 59,68 64,75" fill="#ffffff" stroke="#0f172a" stroke-width="2"/>
-        `;
+        face = `<text x="26" y="55" font-size="19" font-weight="900" fill="#0f172a">X</text>
+                <text x="59" y="55" font-size="19" font-weight="900" fill="#0f172a">X</text>
+                <ellipse cx="50" cy="64" rx="17" ry="10" fill="#fbbf24" stroke="#0f172a" stroke-width="3"/>`;
       } else {
-        // Cheeky Troll Tongue-Out Face
-        face = `
-          <path d="M26,40 L42,45" stroke="#0f172a" stroke-width="4" stroke-linecap="round"/>
-          <path d="M74,40 L58,45" stroke="#0f172a" stroke-width="4" stroke-linecap="round"/>
-          <circle cx="36" cy="49" r="6" fill="#0f172a"/>
-          <circle cx="64" cy="49" r="6" fill="#0f172a"/>
-          <circle cx="34" cy="47" r="2.2" fill="#ffffff"/>
-          <circle cx="62" cy="47" r="2.2" fill="#ffffff"/>
-          <ellipse cx="50" cy="62" rx="19" ry="11" fill="#fde047" stroke="#0f172a" stroke-width="3"/>
-          <ellipse cx="50" cy="57" rx="6.5" ry="4" fill="#0f172a"/>
-          <!-- Wacky Sticking-Out Tongue -->
-          <path d="M43,72 Q50,90 57,72 Z" fill="#f43f5e" stroke="#0f172a" stroke-width="2.5"/>
-        `;
+        face = `<circle cx="36" cy="49" r="6" fill="${type === 'lightning' ? '#fde047' : '#0f172a'}"/>
+                <circle cx="64" cy="49" r="6" fill="${type === 'lightning' ? '#fde047' : '#0f172a'}"/>
+                <ellipse cx="50" cy="62" rx="19" ry="11" fill="#fde047" stroke="#0f172a" stroke-width="3"/>
+                <ellipse cx="50" cy="57" rx="6.5" ry="4" fill="#0f172a"/>
+                <path d="M43,72 Q50,88 57,72 Z" fill="#f43f5e" stroke="#0f172a" stroke-width="2.5"/>`;
       }
 
       return `
@@ -1131,49 +1344,57 @@
           ${headgear}
           <ellipse cx="26" cy="98" rx="10" ry="6" fill="${c1}" stroke="#0f172a" stroke-width="3"/>
           <ellipse cx="74" cy="98" rx="10" ry="6" fill="${c1}" stroke="#0f172a" stroke-width="3"/>
-        </svg>
-      `;
+        </svg>`;
     }
 
     // --- 5. MASTER GAME CONTROLLER ---
-    class OverdriveWhackAMole {
+    class BloodMoonArcade {
       constructor() {
         this.board = document.getElementById('board');
         this.cabinet = document.getElementById('cabinet');
         this.roomBg = document.getElementById('room-bg');
         this.scoreboard = document.getElementById('scoreboard');
         this.flashEl = document.getElementById('screen-flash');
+        this.frostEl = document.getElementById('frost-overlay');
+        this.glassEl = document.getElementById('cracked-glass');
+
         this.scoreEl = document.getElementById('score-val');
         this.timeEl = document.getElementById('time-val');
         this.streakEl = document.getElementById('streak-val');
-        this.highEl = document.getElementById('high-val');
-        this.startBtn = document.getElementById('start-btn');
-        this.musicBtn = document.getElementById('music-btn');
-        this.sfxBtn = document.getElementById('sfx-btn');
-        this.mallet = document.getElementById('mallet-cursor');
-        this.modal = document.getElementById('modal');
+        this.coinEl = document.getElementById('coin-val');
+        this.malletEl = document.getElementById('mallet-cursor');
 
         this.fx = new ParticleEngine();
         this.audio = new ArcadeSoundSystem();
 
+        // Persistent Shop & Coin State
+        this.coins = Number(localStorage.getItem('wam_coins')) || 0;
+        this.unlockedMallets = JSON.parse(localStorage.getItem('wam_unlocked')) || ['classic'];
+        this.equippedMallet = localStorage.getItem('wam_equipped') || 'classic';
+
         this.isPlaying = false;
         this.score = 0;
-        this.highScore = Number(localStorage.getItem('wam_overdrive_high')) || 0;
         this.timeLeft = CONFIG.roundSeconds;
         this.streak = 0;
         this.maxStreak = 0;
-        this.clicks = 0;
-        this.hits = 0;
+        this.frozenUntil = 0;
 
         this.activeHoles = new Map();
         this.insultBag = [];
         this.lastTauntTime = 0;
+
+        // 3D Parallax Tilt + Camera Shake Coordinates
         this.shakePower = 0;
+        this.targetTiltX = 0;
+        this.targetTiltY = 0;
+        this.currTiltX = 0;
+        this.currTiltY = 0;
 
         this._buildBoard();
+        this._equipMallet(this.equippedMallet);
         this._bindEvents();
         this._updateHUD();
-        this._shakeLoop();
+        this._renderTransformLoop();
       }
 
       _buildBoard() {
@@ -1184,9 +1405,7 @@
           cell.dataset.index = i;
           cell.innerHTML = `
             <div class="boss-hp-bar hidden" id="hp-${i}">
-              <div class="hp-pip"></div>
-              <div class="hp-pip"></div>
-              <div class="hp-pip"></div>
+              <div class="hp-pip"></div><div class="hp-pip"></div><div class="hp-pip"></div>
             </div>
             <div class="dirt-pit-back"></div>
             <div class="mole-stage">
@@ -1201,48 +1420,125 @@
         }
       }
 
+      _equipMallet(id) {
+        if (!MALLETS[id]) id = 'classic';
+        this.equippedMallet = id;
+        localStorage.setItem('wam_equipped', id);
+        this.malletEl.innerHTML = MALLETS[id].svg;
+      }
+
+      _openShop() {
+        document.getElementById('shop-coin-bank').textContent = `🪙 ${this.coins}`;
+        const container = document.getElementById('shop-items');
+        container.innerHTML = '';
+
+        Object.values(MALLETS).forEach((m) => {
+          const isUnlocked = this.unlockedMallets.includes(m.id);
+          const isEquipped = this.equippedMallet === m.id;
+          const card = document.createElement('div');
+          card.className = `shop-card ${isEquipped ? 'equipped' : ''}`;
+          card.innerHTML = `
+            <div class="shop-card-top">
+              <div class="shop-icon">${m.svg}</div>
+              <div>
+                <div class="shop-title">${m.name}</div>
+                <div class="shop-perk">${m.perk}</div>
+              </div>
+            </div>
+            <button class="shop-action-btn" style="background:${isEquipped ? '#84cc16' : isUnlocked ? '#38bdf8' : '#facc15'}; color:#0f172a">
+              ${isEquipped ? '✓ EQUIPPED' : isUnlocked ? 'EQUIP HAMMER' : `UNLOCK (🪙 ${m.cost})`}
+            </button>
+          `;
+
+          card.querySelector('button').addEventListener('click', () => {
+            if (isUnlocked) {
+              this._equipMallet(m.id);
+              this._openShop();
+            } else if (this.coins >= m.cost) {
+              this.coins -= m.cost;
+              this.unlockedMallets.push(m.id);
+              localStorage.setItem('wam_coins', this.coins);
+              localStorage.setItem('wam_unlocked', JSON.stringify(this.unlockedMallets));
+              this._equipMallet(m.id);
+              this._updateHUD();
+              this._openShop();
+            } else {
+              alert('Not enough coins! Click "+1,500 DEMO COINS" below to test immediately!');
+            }
+          });
+          container.appendChild(card);
+        });
+
+        document.getElementById('shop-modal').classList.remove('hidden');
+      }
+
       _bindEvents() {
         window.addEventListener('pointermove', (e) => {
-          this.mallet.style.left = `${e.clientX}px`;
-          this.mallet.style.top = `${e.clientY}px`;
+          this.malletEl.style.left = `${e.clientX}px`;
+          this.malletEl.style.top = `${e.clientY}px`;
+
+          // Calculate 3D Cabinet Parallax Tilt (-6deg to +6deg)
+          const normX = (e.clientX / window.innerWidth - 0.5) * 2;
+          const normY = (e.clientY / window.innerHeight - 0.5) * 2;
+          this.targetTiltY = normX * 6.5;
+          this.targetTiltX = -normY * 5.5;
         });
 
         window.addEventListener('pointerdown', () => {
-          this.mallet.classList.add('swing');
-          setTimeout(() => this.mallet.classList.remove('swing'), 95);
+          this.malletEl.classList.add('swing');
+          setTimeout(() => this.malletEl.classList.remove('swing'), 95);
         });
 
         this.board.addEventListener('pointerdown', (e) => this._onWhack(e));
-        this.startBtn.addEventListener('click', () => this.startRound());
+        document.getElementById('start-btn').addEventListener('click', () => this.startRound());
+        document.getElementById('shop-btn').addEventListener('click', () => this._openShop());
+        document.getElementById('open-shop-end-btn').addEventListener('click', () => {
+          document.getElementById('modal').classList.add('hidden');
+          this._openShop();
+        });
+        document.getElementById('close-shop-btn').addEventListener('click', () => {
+          document.getElementById('shop-modal').classList.add('hidden');
+        });
+        document.getElementById('demo-coins-btn').addEventListener('click', () => {
+          this.coins += 1500;
+          localStorage.setItem('wam_coins', this.coins);
+          this._updateHUD();
+          this._openShop();
+        });
         document.getElementById('replay-btn').addEventListener('click', () => {
-          this.modal.classList.add('hidden');
+          document.getElementById('modal').classList.add('hidden');
           this.startRound();
         });
 
-        this.musicBtn.addEventListener('click', () => {
+        document.getElementById('music-btn').addEventListener('click', (e) => {
           this.audio.musicEnabled = !this.audio.musicEnabled;
-          this.musicBtn.textContent = `MUSIC: ${this.audio.musicEnabled ? 'ON' : 'OFF'}`;
+          e.target.textContent = `MUSIC: ${this.audio.musicEnabled ? 'ON' : 'OFF'}`;
         });
-
-        this.sfxBtn.addEventListener('click', () => {
+        document.getElementById('sfx-btn').addEventListener('click', (e) => {
           this.audio.sfxEnabled = !this.audio.sfxEnabled;
-          this.sfxBtn.textContent = `SFX: ${this.audio.sfxEnabled ? 'ON' : 'OFF'}`;
+          e.target.textContent = `SFX: ${this.audio.sfxEnabled ? 'ON' : 'OFF'}`;
         });
       }
 
-      // Continuous Camera Shake Decay Loop
-      _shakeLoop() {
+      // Combined 3D Parallax Tilt + Impact Screen Shake Loop
+      _renderTransformLoop() {
+        this.currTiltX += (this.targetTiltX - this.currTiltX) * 0.12;
+        this.currTiltY += (this.targetTiltY - this.currTiltY) * 0.12;
+
+        let dx = 0, dy = 0, rotZ = 0;
         if (this.shakePower > 0.4) {
-          const dx = (Math.random() - 0.5) * this.shakePower;
-          const dy = (Math.random() - 0.5) * this.shakePower;
-          const rot = (Math.random() - 0.5) * (this.shakePower * 0.12);
-          this.cabinet.style.transform = `translate(${dx}px, ${dy}px) rotate(${rot}deg)`;
+          dx = (Math.random() - 0.5) * this.shakePower;
+          dy = (Math.random() - 0.5) * this.shakePower;
+          rotZ = (Math.random() - 0.5) * (this.shakePower * 0.12);
           this.shakePower *= 0.82;
         } else {
           this.shakePower = 0;
-          this.cabinet.style.transform = 'none';
         }
-        requestAnimationFrame(() => this._shakeLoop());
+
+        this.cabinet.style.transform =
+          `translate3d(${dx}px, ${dy}px, 0) rotateX(${this.currTiltX}deg) rotateY(${this.currTiltY}deg) rotateZ(${rotZ}deg)`;
+
+        requestAnimationFrame(() => this._renderTransformLoop());
       }
 
       triggerJuice(shakeAmt = 10, hitStopMs = 50, flashColor = null) {
@@ -1254,7 +1550,7 @@
         if (flashColor) {
           this.flashEl.style.background = flashColor;
           this.flashEl.style.opacity = '0.42';
-          setTimeout(() => (this.flashEl.style.opacity = '0'), 95);
+          setTimeout(() => (this.flashEl.style.opacity = '0'), 100);
         }
       }
 
@@ -1277,23 +1573,44 @@
         this.timeLeft = CONFIG.roundSeconds;
         this.streak = 0;
         this.maxStreak = 0;
-        this.clicks = 0;
-        this.hits = 0;
+        this.frozenUntil = 0;
 
+        this.roomBg.classList.remove('dusk-phase', 'blood-moon-phase');
+        this.board.classList.remove('blood-turf');
         this.scoreboard.classList.remove('red-alert');
-        this.startBtn.textContent = 'IN PROGRESS...';
-        this.startBtn.disabled = true;
+        this.frostEl.classList.remove('active');
+        this.glassEl.classList.remove('shattered');
+
+        const startBtn = document.getElementById('start-btn');
+        startBtn.textContent = 'IN PROGRESS...';
+        startBtn.disabled = true;
         this._updateHUD();
 
         this.audio.setTempo(115);
         this.audio.startMusic();
 
         this.clockTimer = setInterval(() => {
-          this.timeLeft--;
-          if (this.timeLeft <= 12 && this.timeLeft > 0) {
-            this.scoreboard.classList.add('red-alert');
-            this.audio.setTempo(148);
+          // Pause countdown timer while Freeze Power-Up is active!
+          if (performance.now() < this.frozenUntil) {
+            this._updateHUD();
+            return;
           }
+          this.frostEl.classList.remove('active');
+
+          this.timeLeft--;
+
+          // Day -> Dusk -> Blood Moon Progression
+          if (this.timeLeft <= 15 && this.timeLeft > 0) {
+            this.roomBg.classList.remove('dusk-phase');
+            this.roomBg.classList.add('blood-moon-phase');
+            this.board.classList.add('blood-turf');
+            this.scoreboard.classList.add('red-alert');
+            this.audio.setTempo(150);
+          } else if (this.timeLeft <= 30) {
+            this.roomBg.classList.add('dusk-phase');
+            this.audio.setTempo(128);
+          }
+
           this._updateHUD();
           if (this.timeLeft <= 0) this.endRound();
         }, 1000);
@@ -1304,7 +1621,7 @@
       _scheduleSpawn() {
         if (!this.isPlaying) return;
         const [min, max] = CONFIG.spawnInterval;
-        const speedFactor = this.timeLeft <= 12 ? 0.72 : this.streak >= 5 ? 0.82 : 1;
+        const speedFactor = this.timeLeft <= 15 ? 0.68 : 1;
         const delay = (min + Math.random() * (max - min)) * speedFactor;
 
         this.spawnTimer = setTimeout(() => {
@@ -1325,6 +1642,7 @@
         const index = free[Math.floor(Math.random() * free.length)];
         const type = this._rollArchetype();
         const cfg = CONFIG.archetypes[type];
+        const malletCfg = MALLETS[this.equippedMallet];
 
         const cell = this.board.children[index];
         const moleEl = cell.querySelector('.mole-character');
@@ -1334,8 +1652,12 @@
         moleEl.dataset.type = type;
         moleEl.dataset.hp = cfg.hp;
         moleEl.innerHTML = getMoleArchetypeSVG(type, 'normal', cfg.hp);
-        moleEl.classList.remove('whacked', 'laughing', 'boss-hit');
+        moleEl.classList.remove('whacked', 'laughing', 'boss-hit', 'frozen-mole');
         moleEl.classList.add('up');
+
+        if (performance.now() < this.frozenUntil) {
+          moleEl.classList.add('frozen-mole');
+        }
 
         if (type === 'boss') {
           hpBar.classList.remove('hidden');
@@ -1345,16 +1667,17 @@
         }
 
         const [minStay, maxStay] = cfg.stay;
-        const stayMs = minStay + Math.random() * (maxStay - minStay);
+        const freezeExtra = performance.now() < this.frozenUntil ? 2500 : 0;
+        const stayMs = minStay + Math.random() * (maxStay - minStay) + malletCfg.stayBonus + freezeExtra;
 
         const timerId = setTimeout(() => {
           hpBar.classList.add('hidden');
-          // If a non-TNT mole escapes unwhacked, it laughs at you!
           if (moleEl.dataset.state === 'up' && type !== 'tnt' && this.isPlaying) {
-            this._setStreak(0);
+            this.streak = 0;
+            this._updateHUD();
             this._triggerLaugh(index, moleEl, type);
           } else {
-            moleEl.classList.remove('up');
+            moleEl.classList.remove('up', 'frozen-mole');
             moleEl.dataset.state = 'down';
             this.activeHoles.delete(index);
           }
@@ -1364,20 +1687,18 @@
       }
 
       _renderBossHP(hpBar, currentHp) {
-        const pips = hpBar.querySelectorAll('.hp-pip');
-        pips.forEach((pip, idx) => {
+        hpBar.querySelectorAll('.hp-pip').forEach((pip, idx) => {
           pip.classList.toggle('lost', idx >= currentHp);
         });
       }
 
       _onWhack(e) {
         if (!this.isPlaying) return;
-        this.clicks++;
-
         const clickX = e.clientX;
         const clickY = e.clientY;
         const moleEl = e.target.closest('.mole-character');
         const cellEl = e.target.closest('.hole-cell');
+        const malletCfg = MALLETS[this.equippedMallet];
 
         if (moleEl && (moleEl.dataset.state === 'up' || moleEl.dataset.state === 'laughing')) {
           const index = Number(moleEl.dataset.index);
@@ -1385,20 +1706,23 @@
           let hp = Number(moleEl.dataset.hp || 1);
           const hpBar = document.getElementById(`hp-${index}`);
 
-          // Remove any active speech bubble on hit
           const bubble = this.board.children[index].querySelector('.comic-taunt');
           if (bubble) bubble.remove();
 
-          // CASE 1: Hit a TNT Mole -> KABOOM!
+          // 1. TNT MOLE -> CRACKED SCREEN GLASS + EXPLOSION!
           if (type === 'tnt') {
             clearTimeout(this.activeHoles.get(index));
-            this.audio.playExplosion();
+            this.audio.playExplosionAndShatter();
             this.fx.spawnBurst(clickX, clickY, 'tnt');
-            this.triggerJuice(32, 85, '#ef4444');
+            this.triggerJuice(36, 95, '#ef4444');
 
-            this._setStreak(0);
+            // Trigger Spiderweb Glass Crack
+            this.glassEl.classList.add('shattered');
+            setTimeout(() => this.glassEl.classList.remove('shattered'), 2200);
+
+            this.streak = 0;
             this.score = Math.max(0, this.score + CONFIG.archetypes.tnt.points);
-            this._showFloatingText(index, 'KABOOM! -200', '#f43f5e');
+            this._showFloatingText(index, 'SHATTERED! -200', '#f43f5e');
             this._updateHUD();
 
             moleEl.dataset.state = 'whacked';
@@ -1412,9 +1736,9 @@
             return;
           }
 
-          // CASE 2: Multi-Hit Boss Mole Armor Strike
-          if (type === 'boss' && hp > 1) {
-            hp--;
+          // 2. BOSS MOLE ARMOR HIT (Respects Thor's Mjolnir 2x Damage!)
+          if (type === 'boss' && hp > malletCfg.damage) {
+            hp -= malletCfg.damage;
             moleEl.dataset.hp = hp;
             this._renderBossHP(hpBar, hp);
             moleEl.innerHTML = getMoleArchetypeSVG('boss', 'normal', hp);
@@ -1422,80 +1746,83 @@
             void moleEl.offsetWidth;
             moleEl.classList.add('boss-hit');
 
-            this.hits++;
             this.audio.playArmorClang();
             this.fx.spawnBurst(clickX, clickY, 'bossClang');
-            this.triggerJuice(12, 40);
-            this._showFloatingText(index, `CLANG! (${hp} LEFT)`, '#38bdf8');
+            this.triggerJuice(14, 45);
+            this._showFloatingText(index, `CLANG! (${hp} HP)`, '#38bdf8');
             return;
           }
 
-          // CASE 3: Knockout Strike (Troll, Jackpot, or Final Boss Hit)
-          clearTimeout(this.activeHoles.get(index));
-          hpBar.classList.add('hidden');
-          moleEl.dataset.state = 'whacked';
-          moleEl.innerHTML = getMoleArchetypeSVG(type, 'whacked');
-          moleEl.classList.remove('laughing', 'boss-hit');
-          moleEl.classList.add('whacked');
+          // 3. KNOCKOUT STRIKE
+          this._knockoutMole(index, moleEl, type, clickX, clickY);
 
-          this.hits++;
-          this._setStreak(this.streak + 1);
-          const feverMult = this.streak >= 5 ? 2 : 1;
-          const pts = CONFIG.archetypes[type].points * feverMult;
-          this.score += pts;
-
-          if (type === 'jackpot') {
-            this.audio.playJackpot();
-            this.fx.spawnBurst(clickX, clickY, 'jackpot');
-            this.triggerJuice(18, 65, '#facc15');
-            this._showFloatingText(index, `JACKPOT! +${pts}`, '#fde047');
-          } else if (type === 'boss') {
-            this.audio.playHeavyWhack();
-            this.audio.playJackpot();
-            this.fx.spawnBurst(clickX, clickY, 'bossKO');
-            this.triggerJuice(26, 75, '#38bdf8');
-            this._showFloatingText(index, `BOSS KO! +${pts}`, '#f97316');
-          } else {
-            this.audio.playHeavyWhack();
-            this.fx.spawnBurst(clickX, clickY, 'normal');
-            this.triggerJuice(11, 45);
-            this._showFloatingText(index, `+${pts}${feverMult > 1 ? ' 🔥' : ''}`, '#fde047');
+          // 4. SPECIAL POWER-UP: FREEZE CHRONO MOLE
+          if (type === 'freeze') {
+            this.audio.playFreeze();
+            this.frostEl.classList.add('active');
+            this.frozenUntil = performance.now() + 3500;
+            this.board.querySelectorAll('.mole-character.up').forEach((m) => m.classList.add('frozen-mole'));
           }
 
-          if (this.score > this.highScore) {
-            this.highScore = this.score;
-            localStorage.setItem('wam_overdrive_high', this.highScore);
+          // 5. SPECIAL POWER-UP: LIGHTNING CHAIN-REACTION MOLE
+          if (type === 'lightning') {
+            this.audio.playLightning();
+            this.triggerJuice(25, 70, '#c084fc');
+            // Zap every other active non-TNT mole on the board!
+            this.board.querySelectorAll('.mole-character.up').forEach((otherMole) => {
+              const otherIdx = Number(otherMole.dataset.index);
+              const otherType = otherMole.dataset.type;
+              if (otherIdx !== index && otherType !== 'tnt' && otherMole.dataset.state === 'up') {
+                const rect = otherMole.getBoundingClientRect();
+                const ox = rect.left + rect.width / 2;
+                const oy = rect.top + rect.height / 2;
+                this.fx.spawnLightningBolt(clickX, clickY, ox, oy);
+                this._knockoutMole(otherIdx, otherMole, otherType, ox, oy, true);
+              }
+            });
           }
-          this._updateHUD();
-
-          setTimeout(() => {
-            moleEl.classList.remove('up', 'whacked');
-            moleEl.dataset.state = 'down';
-            this.activeHoles.delete(index);
-          }, 240);
 
         } else if (cellEl) {
           // Whiffed on Empty Dirt!
           this.fx.spawnBurst(clickX, clickY, 'whiff');
-          this._setStreak(0);
+          this.streak = 0;
+          this._updateHUD();
           const missedIdx = Number(cellEl.dataset.index);
           const targetMole = cellEl.querySelector('.mole-character');
           this._triggerLaugh(missedIdx, targetMole, 'troll');
         }
       }
 
-      _setStreak(newStreak) {
-        this.streak = newStreak;
+      _knockoutMole(index, moleEl, type, x, y, isChainZap = false) {
+        clearTimeout(this.activeHoles.get(index));
+        document.getElementById(`hp-${index}`).classList.add('hidden');
+
+        moleEl.dataset.state = 'whacked';
+        moleEl.innerHTML = getMoleArchetypeSVG(type, 'whacked');
+        moleEl.classList.remove('laughing', 'boss-hit', 'frozen-mole');
+        moleEl.classList.add('whacked');
+
+        this.streak++;
         if (this.streak > this.maxStreak) this.maxStreak = this.streak;
 
-        const isFever = this.streak >= 5;
-        this.cabinet.classList.toggle('fever-mode', isFever);
-        this.roomBg.classList.toggle('fever-bg', isFever);
+        const malletCfg = MALLETS[this.equippedMallet];
+        const feverMult = this.streak >= 5 ? 2 : 1;
+        const pts = Math.round(CONFIG.archetypes[type].points * feverMult * malletCfg.scoreMult);
+        this.score += pts;
 
-        if (this.timeLeft > 12) {
-          this.audio.setTempo(isFever ? 135 : 115);
-        }
+        this.audio.playMalletHit(this.equippedMallet);
+        this.fx.spawnBurst(x, y, type === 'freeze' ? 'freeze' : type === 'lightning' ? 'lightning' : type === 'jackpot' ? 'jackpot' : 'normal');
+        if (!isChainZap) this.triggerJuice(12, 45);
+
+        const label = isChainZap ? `⚡ ZAPPED! +${pts}` : type === 'freeze' ? `❄️ FREEZE! +${pts}` : type === 'lightning' ? `⚡ CHAIN ZAP! +${pts}` : `+${pts}`;
+        this._showFloatingText(index, label, type === 'freeze' ? '#38bdf8' : type === 'lightning' ? '#c084fc' : '#fde047');
         this._updateHUD();
+
+        setTimeout(() => {
+          moleEl.classList.remove('up', 'whacked');
+          moleEl.dataset.state = 'down';
+          this.activeHoles.delete(index);
+        }, 240);
       }
 
       _triggerLaugh(index, moleEl, type = 'troll') {
@@ -1541,8 +1868,7 @@
           <div class="comic-taunt-inner">
             <span class="comic-header">${insult.header}</span>
             <span class="comic-body">${insult.text}</span>
-          </div>
-        `;
+          </div>`;
         cell.appendChild(bubble);
         setTimeout(() => bubble.remove(), CONFIG.laughDuration);
       }
@@ -1559,15 +1885,17 @@
 
       _updateHUD() {
         this.scoreEl.textContent = String(this.score).padStart(4, '0');
-        this.highEl.textContent = String(this.highScore).padStart(4, '0');
-        this.timeEl.textContent = `${this.timeLeft}s`;
+        this.coinEl.textContent = `🪙 ${this.coins}`;
+        this.timeEl.textContent = performance.now() < this.frozenUntil ? `❄️ ${this.timeLeft}s` : `${this.timeLeft}s`;
 
         if (this.streak >= 5) {
           this.streakEl.textContent = `${this.streak}x FEVER!`;
           this.streakEl.className = 'stat-val fever-text';
+          this.cabinet.classList.add('fever-mode');
         } else {
           this.streakEl.textContent = `${this.streak}x`;
           this.streakEl.className = 'stat-val combo-hot';
+          this.cabinet.classList.remove('fever-mode');
         }
       }
 
@@ -1583,34 +1911,29 @@
         this.audio.stopMusic();
         this.isPlaying = false;
 
-        this.cabinet.classList.remove('fever-mode');
-        this.roomBg.classList.remove('fever-bg');
-        this.scoreboard.classList.remove('red-alert');
-        this.startBtn.textContent = 'START GAME';
-        this.startBtn.disabled = false;
+        this.frostEl.classList.remove('active');
+        const startBtn = document.getElementById('start-btn');
+        startBtn.textContent = 'START GAME';
+        startBtn.disabled = false;
 
         this.board.querySelectorAll('.mole-character').forEach((m) => {
-          m.classList.remove('up', 'laughing', 'whacked', 'boss-hit');
+          m.classList.remove('up', 'laughing', 'whacked', 'boss-hit', 'frozen-mole');
           m.dataset.state = 'down';
         });
-        this.board.querySelectorAll('.boss-hp-bar').forEach((b) => b.classList.add('hidden'));
 
-        const acc = this.clicks > 0 ? Math.round((this.hits / this.clicks) * 100) : 0;
+        const earnedCoins = Math.max(50, Math.round(this.score * 0.25));
+        this.coins += earnedCoins;
+        localStorage.setItem('wam_coins', this.coins);
+        this._updateHUD();
+
         document.getElementById('final-score').textContent = String(this.score).padStart(4, '0');
-        document.getElementById('final-acc').textContent = `${acc}%`;
+        document.getElementById('final-coins').textContent = `+${earnedCoins} 🪙`;
         document.getElementById('final-streak').textContent = `${this.maxStreak}x`;
-        document.getElementById('modal-taunt').textContent =
-          this.score >= 2500
-            ? '"UNSTOPPABLE! You demolished the mole empire!"'
-            : acc < 50
-              ? '"BWAHAHA! The moles are still laughing at your aim!"'
-              : '"Solid reflexes! Try hitting a 5x streak for FEVER MODE!"';
-
-        this.modal.classList.remove('hidden');
+        document.getElementById('modal').classList.remove('hidden');
       }
     }
 
-    window.onload = () => new OverdriveWhackAMole();
+    window.onload = () => new BloodMoonArcade();
   </script>
 </body>
 </html>
