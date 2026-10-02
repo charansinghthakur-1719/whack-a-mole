@@ -63,9 +63,8 @@
       align-items: flex-start;
       padding-top: 18px;
     }
-    #frost-overlay.active {
-      opacity: 1;
-    }
+    #frost-overlay.active { opacity: 1; }
+
     .frost-banner {
       font-family: 'Bangers', cursive;
       font-size: 2.2rem;
@@ -105,21 +104,18 @@
       transition: background 1.2s ease;
     }
 
-    /* Stage 2: Sunset Dusk (29s - 16s) */
     .arcade-room.dusk-phase {
       background:
         radial-gradient(circle at 50% 22%, rgba(249, 115, 22, 0.25) 0%, transparent 65%),
         linear-gradient(180deg, #1f1224 0%, #3b1c32 48%, #7c2d12 49%, #431407 53%, #160d18 54%, #07050a 100%);
     }
 
-    /* Stage 3: Blood Moon Finale (Last 15s) */
     .arcade-room.blood-moon-phase {
       background:
         radial-gradient(circle at 50% 18%, rgba(225, 29, 72, 0.42) 0%, rgba(136, 19, 55, 0.2) 55%, transparent 75%),
         linear-gradient(180deg, #1a050d 0%, #310814 48%, #881337 49%, #4c0519 53%, #140409 54%, #050103 100%);
     }
 
-    /* Rising Blood Moon Celestial Orb */
     .blood-moon-orb {
       position: fixed;
       top: 14%;
@@ -352,16 +348,15 @@
       background: radial-gradient(circle at 50% 35%, #84cc16 0%, #4d7c0f 58%, #365314 100%);
       border: 5px solid #1a2e05;
       border-radius: 14px;
-      padding: 14px 24px 22px;
+      padding: 20px 24px 24px;
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 14px 24px;
+      gap: 16px 24px;
       box-shadow: inset 0 18px 40px rgba(0,0,0,0.68);
       position: relative;
       transition: background 1.2s ease, border-color 1.2s ease;
     }
 
-    /* Blood Moon Crimson Turf */
     .grass-board.blood-turf {
       background: radial-gradient(circle at 50% 35%, #9f1239 0%, #4c0519 60%, #1f030b 100%);
       border-color: #881337;
@@ -370,11 +365,17 @@
     /* Individual Hole Cell */
     .hole-cell {
       position: relative;
-      height: 128px;
+      height: 132px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: flex-end;
+      z-index: 5;
+    }
+
+    /* Elevate hole z-index when a mole is holding a dialogue card so it never sits behind another row */
+    .hole-cell.card-active {
+      z-index: 60;
     }
 
     .dirt-pit-back {
@@ -389,29 +390,51 @@
       z-index: 1;
     }
 
+    /* Tall & Wide Stage Mask: Clips strictly at the bottom hole rim so the Mole + Wide Card rise & sink together! */
     .mole-stage {
       position: absolute;
-      bottom: 24px;
-      width: 92%;
-      height: 124px;
+      bottom: 22px;
+      width: 260px;
+      height: 210px;
       overflow: hidden;
       display: flex;
       justify-content: center;
       align-items: flex-end;
       z-index: 2;
-      border-radius: 0 0 46% 46%;
+      border-radius: 0 0 85px 85px;
+      pointer-events: none;
     }
 
     .mole-character {
-      width: 114px;
-      height: 116px;
-      transform: translateY(115%);
-      transition: transform 0.19s cubic-bezier(0.22, 1, 0.36, 1);
+      width: 118px;
+      height: 120px;
+      transform: translateY(125%);
+      transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
       position: relative;
       cursor: none;
+      pointer-events: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
     }
 
-    .mole-character.up { transform: translateY(6%); }
+    .mole-character.up {
+      transform: translateY(6%);
+    }
+
+    /* When Laughing with Card: Mole pops higher out of the hole and chuckles while holding the placard */
+    .mole-character.laughing-with-card {
+      width: 245px;
+      height: 195px;
+      transform: translateY(0%);
+      animation: moleCardLaugh 0.26s infinite alternate ease-in-out;
+    }
+
+    @keyframes moleCardLaugh {
+      0% { transform: translateY(0%) rotate(-1.5deg); }
+      100% { transform: translateY(5%) rotate(1.5deg); }
+    }
 
     .mole-character.frozen-mole {
       filter: hue-rotate(155deg) saturate(1.6) brightness(1.2) drop-shadow(0 0 10px #38bdf8);
@@ -427,19 +450,65 @@
       75% { transform: translateY(8%) translateX(7px) rotate(4deg); }
     }
 
-    .mole-character.laughing {
-      transform: translateY(2%);
-      animation: moleBellyLaugh 0.18s infinite alternate ease-in-out;
-    }
-
-    @keyframes moleBellyLaugh {
-      0% { transform: translateY(2%) rotate(-4deg) scale(1.04); }
-      100% { transform: translateY(11%) rotate(4deg) scale(0.96); }
-    }
-
     .mole-character.whacked {
-      transform: translateY(32%) scale(1.12, 0.68);
-      transition: transform 0.06s ease-out;
+      transform: translateY(38%) scale(1.12, 0.68);
+      transition: transform 0.08s ease-out;
+    }
+
+    /* Physical Signboard / Placard Held in the Mole's Paws */
+    .mole-held-card {
+      position: relative;
+      width: 236px;
+      background: linear-gradient(180deg, #fffbeb 0%, #fef3c7 100%);
+      border: 4px solid #0f172a;
+      border-radius: 14px;
+      padding: 8px 14px 10px;
+      text-align: center;
+      box-shadow:
+        0 8px 0 #78350f,
+        0 14px 24px rgba(0,0,0,0.85);
+      z-index: 10;
+      margin-top: -22px;
+      margin-bottom: 4px;
+    }
+
+    /* Mole Paws Clamping the Left & Right Edges of the Dialogue Card */
+    .card-paw {
+      position: absolute;
+      top: 50%;
+      width: 22px;
+      height: 26px;
+      background: #d97706;
+      border: 3.5px solid #0f172a;
+      border-radius: 50%;
+      transform: translateY(-50%);
+      z-index: 12;
+      box-shadow: inset 0 -3px 0 #92400e;
+    }
+    .card-paw.left { left: -11px; }
+    .card-paw.right { right: -11px; }
+
+    .card-header-tag {
+      display: inline-block;
+      font-family: 'Bangers', cursive;
+      font-size: 1.25rem;
+      letter-spacing: 0.06em;
+      color: #ffffff;
+      background: #e11d48;
+      border: 2.5px solid #0f172a;
+      padding: 1px 12px;
+      border-radius: 999px;
+      margin-bottom: 4px;
+      text-shadow: 1px 1px 0 #0f172a;
+    }
+
+    .card-dialogue-text {
+      display: block;
+      font-family: 'Fredoka', sans-serif;
+      font-weight: 800;
+      font-size: 0.98rem;
+      line-height: 1.22;
+      color: #0f172a;
     }
 
     .boss-hp-bar {
@@ -480,60 +549,6 @@
       pointer-events: none;
     }
 
-    /* Spiky Comic Taunt Speech Bubble */
-    .comic-taunt {
-      position: absolute;
-      bottom: 94%;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 220px;
-      z-index: 50;
-      pointer-events: none;
-      animation: comicPopIn 0.24s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
-      filter: drop-shadow(0 10px 18px rgba(0,0,0,0.8));
-    }
-
-    .comic-taunt-inner {
-      background: #ffffff;
-      border: 4px solid #0f172a;
-      border-radius: 16px;
-      padding: 8px 12px;
-      text-align: center;
-      position: relative;
-    }
-
-    .comic-taunt-inner::after {
-      content: '';
-      position: absolute;
-      bottom: -14px;
-      left: 50%;
-      transform: translateX(-50%) rotate(-6deg);
-      border-width: 14px 10px 0;
-      border-style: solid;
-      border-color: #0f172a transparent;
-    }
-
-    .comic-header {
-      display: block;
-      font-family: 'Bangers', cursive;
-      font-size: 1.25rem;
-      color: #ef4444;
-      -webkit-text-stroke: 0.8px #0f172a;
-    }
-
-    .comic-body {
-      font-weight: 800;
-      font-size: 0.8rem;
-      line-height: 1.2;
-      color: #0f172a;
-    }
-
-    @keyframes comicPopIn {
-      0% { opacity: 0; transform: translateX(-50%) scale(0.2) rotate(-10deg); }
-      75% { opacity: 1; transform: translateX(-50%) scale(1.08) rotate(2deg); }
-      100% { opacity: 1; transform: translateX(-50%) scale(1) rotate(0deg); }
-    }
-
     .floating-pts {
       position: absolute;
       bottom: 86%;
@@ -544,7 +559,7 @@
       letter-spacing: 0.04em;
       -webkit-text-stroke: 1.8px #0f172a;
       text-shadow: 0 5px 10px rgba(0,0,0,0.9);
-      z-index: 45;
+      z-index: 75;
       pointer-events: none;
       white-space: nowrap;
       animation: floatScoreUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -624,7 +639,6 @@
       margin-bottom: 20px;
     }
 
-    /* Shop Grid */
     .shop-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -703,7 +717,6 @@
   <!-- Cracked Screen Glass Effect on TNT Explosion -->
   <svg id="cracked-glass" viewBox="0 0 1000 1000" preserveAspectRatio="none">
     <g stroke="rgba(255,255,255,0.88)" stroke-width="3" fill="none">
-      <!-- Center Impact Spiderweb -->
       <path d="M500,500 L120,80 M500,500 L890,110 M500,500 L960,540 M500,500 L820,940 M500,500 L180,910 M500,500 L40,440 M500,500 L480,30 M500,500 L560,970"/>
       <path d="M380,370 L500,320 L630,380 L670,510 L610,640 L480,670 L360,610 L330,480 Z" stroke-width="2.2"/>
       <path d="M240,220 L490,160 L750,240 L830,520 L720,790 L490,840 L260,760 L170,460 Z" stroke-width="1.8"/>
@@ -886,27 +899,33 @@
     const CONFIG = {
       holes: 9,
       roundSeconds: 45,
-      spawnInterval: [680, 1180],
+      spawnInterval: [750, 1280],
       maxConcurrent: 3,
-      laughDuration: 1100,
-      tauntCooldown: 650,
+      cardHoldDuration: 2200, // 2.2 full seconds so you can easily read the mole's card before it goes back down!
       archetypes: {
-        troll:     { weight: 0.44, hp: 1, points: 100, stay: [1550, 2150] },
-        boss:      { weight: 0.14, hp: 3, points: 500, stay: [2600, 3200] },
-        jackpot:   { weight: 0.12, hp: 1, points: 350, stay: [1200, 1600] },
-        freeze:    { weight: 0.08, hp: 1, points: 150, stay: [1350, 1800] },
-        lightning: { weight: 0.08, hp: 1, points: 200, stay: [1350, 1800] },
-        tnt:       { weight: 0.14, hp: 1, points: -200, stay: [1500, 2000] }
+        troll:     { weight: 0.44, hp: 1, points: 100, stay: [1600, 2200] },
+        boss:      { weight: 0.14, hp: 3, points: 500, stay: [2700, 3300] },
+        jackpot:   { weight: 0.12, hp: 1, points: 350, stay: [1300, 1750] },
+        freeze:    { weight: 0.08, hp: 1, points: 150, stay: [1450, 1900] },
+        lightning: { weight: 0.08, hp: 1, points: 200, stay: [1450, 1900] },
+        tnt:       { weight: 0.14, hp: 1, points: -200, stay: [1550, 2050] }
       }
     };
 
+    // High-Readability Rage-Bait Placard Messages
     const INSULTS = [
       { header: "BWAHAHA!", text: "You just smashed empty dirt!" },
       { header: "TOO SLOW!", text: "I drank a coffee waiting for you!" },
       { header: "SIGH...", text: "Try opening your eyes next time?" },
       { header: "SWING & A MISS!", text: "Dirt: 1 — You: 0!" },
       { header: "CHOKED!", text: "My grandma swings faster than that!" },
-      { header: "HEHEHE!", text: "You had 3 business days to hit me!" }
+      { header: "HEHEHE!", text: "You had 3 business days to hit me!" },
+      { header: "NICE AIM!", text: "Were you trying to whack my shadow?!" },
+      { header: "YAWN...", text: "Wake me up when you find your reflexes!" },
+      { header: "embarrassing!", text: "Is your mouse plugged in?!" },
+      { header: "MISSED ME!", text: "I was literally standing still!" },
+      { header: "OOPS!", text: "Mallet sold separately, apparently!" },
+      { header: "ZERO THREAT!", text: "I didn't even have to duck!" }
     ];
 
     // --- 2. PARTICLE & CHAIN-LIGHTNING ENGINE ---
@@ -961,7 +980,7 @@
           lineWidth: preset === 'tnt' ? 10 : 6
         });
 
-        const count = preset === 'tnt' ? 40 : 24;
+        const count = preset === 'tnt' ? 40 : 22;
         for (let i = 0; i < count; i++) {
           const angle = Math.random() * Math.PI * 2;
           const speed = 2 + Math.random() * 12;
@@ -1003,7 +1022,6 @@
       _loop() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        // Render Chain Lightning Bolts
         for (let i = this.bolts.length - 1; i >= 0; i--) {
           const b = this.bolts[i];
           b.alpha -= 0.06;
@@ -1026,7 +1044,6 @@
           this.ctx.restore();
         }
 
-        // Render Shockwave Rings
         for (let i = this.rings.length - 1; i >= 0; i--) {
           const r = this.rings[i];
           r.r += (r.maxR - r.r) * 0.22;
@@ -1045,7 +1062,6 @@
           this.ctx.restore();
         }
 
-        // Render Debris Particles
         for (let i = this.particles.length - 1; i >= 0; i--) {
           const p = this.particles[i];
           p.x += p.vx;
@@ -1160,7 +1176,6 @@
         const gain = this.ctx.createGain();
 
         if (malletId === 'squeaky') {
-          // High-pitched rubber toy squeak!
           osc.type = 'sine';
           osc.frequency.setValueAtTime(780, now);
           osc.frequency.exponentialRampToValueAtTime(1480, now + 0.06);
@@ -1260,24 +1275,24 @@
         if (!this.sfxEnabled) return;
         this._init();
         const now = this.ctx.currentTime;
-        [0, 0.08, 0.16].forEach((offset, i) => {
+        [0, 0.09, 0.18, 0.27].forEach((offset, i) => {
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
           osc.type = 'sawtooth';
-          osc.frequency.setValueAtTime(520 - i * 55, now + offset);
-          osc.frequency.exponentialRampToValueAtTime(340, now + offset + 0.065);
-          gain.gain.setValueAtTime(0.11, now + offset);
-          gain.gain.linearRampToValueAtTime(0.01, now + offset + 0.065);
+          osc.frequency.setValueAtTime(540 - i * 48, now + offset);
+          osc.frequency.exponentialRampToValueAtTime(340, now + offset + 0.07);
+          gain.gain.setValueAtTime(0.12, now + offset);
+          gain.gain.linearRampToValueAtTime(0.01, now + offset + 0.07);
           osc.connect(gain);
           gain.connect(this.ctx.destination);
           osc.start(now + offset);
-          osc.stop(now + offset + 0.065);
+          osc.stop(now + offset + 0.07);
         });
       }
     }
 
-    // --- 4. EXPRESSIVE MOLE ARCHETYPES SVG (Including Freeze & Lightning!) ---
-    function getMoleArchetypeSVG(type = 'troll', mood = 'normal', hp = 3) {
+    // --- 4. MOLE SVG & HELD PLACARD GENERATOR ---
+    function getMoleArchetypeSVG(type = 'troll', mood = 'normal', hp = 3, cardData = null) {
       const bodyColors = {
         troll:     ['#d97706', '#92400e', '#451a03'],
         boss:      ['#475569', '#334155', '#0f172a'],
@@ -1300,10 +1315,8 @@
       } else if (type === 'jackpot') {
         headgear = `<polygon points="22,34 28,10 42,24 50,6 58,24 72,10 78,34" fill="#fde047" stroke="#0f172a" stroke-width="3.5"/>`;
       } else if (type === 'freeze') {
-        // Icy Crystal Crown
         headgear = `<polygon points="26,34 34,8 45,24 50,2 55,24 66,8 74,34" fill="#e0f2fe" stroke="#0284c7" stroke-width="3"/>`;
       } else if (type === 'lightning') {
-        // Electric Lightning Bolt Crest
         headgear = `<polygon points="54,0 36,22 50,22 42,40 66,16 52,16" fill="#fde047" stroke="#0f172a" stroke-width="2.5"/>`;
       } else if (type === 'tnt') {
         headgear = `<rect x="42" y="8" width="16" height="28" rx="3" fill="#dc2626" stroke="#0f172a" stroke-width="3"/>
@@ -1312,10 +1325,19 @@
 
       let face = '';
       if (mood === 'laughing') {
-        face = `<path d="M27,44 L41,49 L27,54" fill="none" stroke="#0f172a" stroke-width="4.5" stroke-linecap="round"/>
-                <path d="M73,44 L59,49 L73,54" fill="none" stroke="#0f172a" stroke-width="4.5" stroke-linecap="round"/>
-                <ellipse cx="50" cy="61" rx="19" ry="11" fill="#fbbf24" stroke="#0f172a" stroke-width="3"/>
-                <path d="M31,69 Q50,95 69,69 Z" fill="#7f1d1d" stroke="#0f172a" stroke-width="3.5"/>`;
+        // Hysterical Laughing Face with Tears of Joy
+        face = `
+          <path d="M26,43 L40,49 L26,55" fill="none" stroke="#0f172a" stroke-width="4.5" stroke-linecap="round"/>
+          <path d="M74,43 L60,49 L74,55" fill="none" stroke="#0f172a" stroke-width="4.5" stroke-linecap="round"/>
+          <circle cx="23" cy="53" r="4" fill="#38bdf8"/>
+          <circle cx="77" cy="53" r="4" fill="#38bdf8"/>
+          <ellipse cx="50" cy="60" rx="19" ry="11" fill="#fbbf24" stroke="#0f172a" stroke-width="3"/>
+          <ellipse cx="50" cy="55" rx="6.5" ry="4" fill="#0f172a"/>
+          <path d="M30,68 Q50,96 70,68 Z" fill="#7f1d1d" stroke="#0f172a" stroke-width="3.5"/>
+          <path d="M39,81 Q50,73 61,81 Z" fill="#f43f5e"/>
+          <rect x="43.5" y="68" width="6" height="7" rx="1" fill="#ffffff" stroke="#0f172a" stroke-width="1.5"/>
+          <rect x="50.5" y="68" width="6" height="7" rx="1" fill="#ffffff" stroke="#0f172a" stroke-width="1.5"/>
+        `;
       } else if (mood === 'whacked') {
         face = `<text x="26" y="55" font-size="19" font-weight="900" fill="#0f172a">X</text>
                 <text x="59" y="55" font-size="19" font-weight="900" fill="#0f172a">X</text>
@@ -1326,6 +1348,34 @@
                 <ellipse cx="50" cy="62" rx="19" ry="11" fill="#fde047" stroke="#0f172a" stroke-width="3"/>
                 <ellipse cx="50" cy="57" rx="6.5" ry="4" fill="#0f172a"/>
                 <path d="M43,72 Q50,88 57,72 Z" fill="#f43f5e" stroke="#0f172a" stroke-width="2.5"/>`;
+      }
+
+      // When laughing with a card, render the Mole at the top and the Signboard held in its paws below!
+      if (mood === 'laughing' && cardData) {
+        return `
+          <div style="width:108px; height:105px; flex-shrink:0;">
+            <svg viewBox="0 0 100 105" width="100%" height="100%">
+              <defs>
+                <linearGradient id="grad_${type}_l" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="${c1}"/>
+                  <stop offset="55%" stop-color="${c2}"/>
+                  <stop offset="100%" stop-color="${c3}"/>
+                </linearGradient>
+              </defs>
+              <circle cx="20" cy="38" r="9" fill="${c2}" stroke="#0f172a" stroke-width="3"/>
+              <circle cx="80" cy="38" r="9" fill="${c2}" stroke="#0f172a" stroke-width="3"/>
+              <path d="M18,105 L18,46 C18,16 82,16 82,46 L82,105 Z" fill="url(#grad_${type}_l)" stroke="#0f172a" stroke-width="4"/>
+              ${face}
+              ${headgear}
+            </svg>
+          </div>
+          <div class="mole-held-card">
+            <div class="card-paw left"></div>
+            <div class="card-paw right"></div>
+            <span class="card-header-tag">${cardData.header}</span>
+            <span class="card-dialogue-text">${cardData.text}</span>
+          </div>
+        `;
       }
 
       return `
@@ -1367,7 +1417,6 @@
         this.fx = new ParticleEngine();
         this.audio = new ArcadeSoundSystem();
 
-        // Persistent Shop & Coin State
         this.coins = Number(localStorage.getItem('wam_coins')) || 0;
         this.unlockedMallets = JSON.parse(localStorage.getItem('wam_unlocked')) || ['classic'];
         this.equippedMallet = localStorage.getItem('wam_equipped') || 'classic';
@@ -1381,9 +1430,7 @@
 
         this.activeHoles = new Map();
         this.insultBag = [];
-        this.lastTauntTime = 0;
 
-        // 3D Parallax Tilt + Camera Shake Coordinates
         this.shakePower = 0;
         this.targetTiltX = 0;
         this.targetTiltY = 0;
@@ -1477,7 +1524,6 @@
           this.malletEl.style.left = `${e.clientX}px`;
           this.malletEl.style.top = `${e.clientY}px`;
 
-          // Calculate 3D Cabinet Parallax Tilt (-6deg to +6deg)
           const normX = (e.clientX / window.innerWidth - 0.5) * 2;
           const normY = (e.clientY / window.innerHeight - 0.5) * 2;
           this.targetTiltY = normX * 6.5;
@@ -1520,7 +1566,6 @@
         });
       }
 
-      // Combined 3D Parallax Tilt + Impact Screen Shake Loop
       _renderTransformLoop() {
         this.currTiltX += (this.targetTiltX - this.currTiltX) * 0.12;
         this.currTiltY += (this.targetTiltY - this.currTiltY) * 0.12;
@@ -1564,6 +1609,13 @@
         return 'troll';
       }
 
+      _drawNextInsultCard() {
+        if (this.insultBag.length === 0) {
+          this.insultBag = [...INSULTS].sort(() => Math.random() - 0.5);
+        }
+        return this.insultBag.pop();
+      }
+
       startRound() {
         if (this.isPlaying) return;
         this._clearAllTimers();
@@ -1590,7 +1642,6 @@
         this.audio.startMusic();
 
         this.clockTimer = setInterval(() => {
-          // Pause countdown timer while Freeze Power-Up is active!
           if (performance.now() < this.frozenUntil) {
             this._updateHUD();
             return;
@@ -1599,7 +1650,6 @@
 
           this.timeLeft--;
 
-          // Day -> Dusk -> Blood Moon Progression
           if (this.timeLeft <= 15 && this.timeLeft > 0) {
             this.roomBg.classList.remove('dusk-phase');
             this.roomBg.classList.add('blood-moon-phase');
@@ -1648,11 +1698,12 @@
         const moleEl = cell.querySelector('.mole-character');
         const hpBar = document.getElementById(`hp-${index}`);
 
+        cell.classList.remove('card-active');
         moleEl.dataset.state = 'up';
         moleEl.dataset.type = type;
         moleEl.dataset.hp = cfg.hp;
         moleEl.innerHTML = getMoleArchetypeSVG(type, 'normal', cfg.hp);
-        moleEl.classList.remove('whacked', 'laughing', 'boss-hit', 'frozen-mole');
+        moleEl.classList.remove('whacked', 'laughing-with-card', 'boss-hit', 'frozen-mole');
         moleEl.classList.add('up');
 
         if (performance.now() < this.frozenUntil) {
@@ -1672,10 +1723,11 @@
 
         const timerId = setTimeout(() => {
           hpBar.classList.add('hidden');
+          // PASSIVE MISS: Mole escaped unwhacked -> Pulls out the Dialogue Card and laughs before retreating!
           if (moleEl.dataset.state === 'up' && type !== 'tnt' && this.isPlaying) {
             this.streak = 0;
             this._updateHUD();
-            this._triggerLaugh(index, moleEl, type);
+            this._triggerMoleWithCard(index, moleEl, type);
           } else {
             moleEl.classList.remove('up', 'frozen-mole');
             moleEl.dataset.state = 'down';
@@ -1692,6 +1744,23 @@
         });
       }
 
+      // Finds the closest hole index even if the player clicks the grass between holes
+      _findClosestHoleIndex(x, y) {
+        let closestIdx = 0;
+        let minDist = Infinity;
+        Array.from(this.board.children).forEach((cell, idx) => {
+          const rect = cell.getBoundingClientRect();
+          const cx = rect.left + rect.width / 2;
+          const cy = rect.top + rect.height / 2;
+          const dist = Math.hypot(x - cx, y - cy);
+          if (dist < minDist) {
+            minDist = dist;
+            closestIdx = idx;
+          }
+        });
+        return closestIdx;
+      }
+
       _onWhack(e) {
         if (!this.isPlaying) return;
         const clickX = e.clientX;
@@ -1701,13 +1770,17 @@
         const malletCfg = MALLETS[this.equippedMallet];
 
         if (moleEl && (moleEl.dataset.state === 'up' || moleEl.dataset.state === 'laughing')) {
+          // 600ms Read-Protection so an accidental double-click doesn't close the insult card before you read it!
+          if (moleEl.dataset.state === 'laughing' && performance.now() < Number(moleEl.dataset.cardProtectUntil || 0)) {
+            return;
+          }
+
           const index = Number(moleEl.dataset.index);
           const type = moleEl.dataset.type || 'troll';
           let hp = Number(moleEl.dataset.hp || 1);
           const hpBar = document.getElementById(`hp-${index}`);
-
-          const bubble = this.board.children[index].querySelector('.comic-taunt');
-          if (bubble) bubble.remove();
+          const cell = this.board.children[index];
+          cell.classList.remove('card-active');
 
           // 1. TNT MOLE -> CRACKED SCREEN GLASS + EXPLOSION!
           if (type === 'tnt') {
@@ -1716,7 +1789,6 @@
             this.fx.spawnBurst(clickX, clickY, 'tnt');
             this.triggerJuice(36, 95, '#ef4444');
 
-            // Trigger Spiderweb Glass Crack
             this.glassEl.classList.add('shattered');
             setTimeout(() => this.glassEl.classList.remove('shattered'), 2200);
 
@@ -1727,6 +1799,7 @@
 
             moleEl.dataset.state = 'whacked';
             moleEl.innerHTML = getMoleArchetypeSVG('tnt', 'whacked');
+            moleEl.classList.remove('laughing-with-card');
             moleEl.classList.add('whacked');
             setTimeout(() => {
               moleEl.classList.remove('up', 'whacked');
@@ -1736,8 +1809,8 @@
             return;
           }
 
-          // 2. BOSS MOLE ARMOR HIT (Respects Thor's Mjolnir 2x Damage!)
-          if (type === 'boss' && hp > malletCfg.damage) {
+          // 2. BOSS MOLE ARMOR HIT
+          if (type === 'boss' && hp > malletCfg.damage && moleEl.dataset.state === 'up') {
             hp -= malletCfg.damage;
             moleEl.dataset.hp = hp;
             this._renderBossHP(hpBar, hp);
@@ -1756,7 +1829,7 @@
           // 3. KNOCKOUT STRIKE
           this._knockoutMole(index, moleEl, type, clickX, clickY);
 
-          // 4. SPECIAL POWER-UP: FREEZE CHRONO MOLE
+          // 4. FREEZE CHRONO MOLE
           if (type === 'freeze') {
             this.audio.playFreeze();
             this.frostEl.classList.add('active');
@@ -1764,11 +1837,10 @@
             this.board.querySelectorAll('.mole-character.up').forEach((m) => m.classList.add('frozen-mole'));
           }
 
-          // 5. SPECIAL POWER-UP: LIGHTNING CHAIN-REACTION MOLE
+          // 5. LIGHTNING CHAIN-REACTION MOLE
           if (type === 'lightning') {
             this.audio.playLightning();
             this.triggerJuice(25, 70, '#c084fc');
-            // Zap every other active non-TNT mole on the board!
             this.board.querySelectorAll('.mole-character.up').forEach((otherMole) => {
               const otherIdx = Number(otherMole.dataset.index);
               const otherType = otherMole.dataset.type;
@@ -1782,24 +1854,26 @@
             });
           }
 
-        } else if (cellEl) {
-          // Whiffed on Empty Dirt!
+        } else {
+          // ACTIVE MISS (Clicked empty hole or grass): Mole comes out holding the Dialogue Card and laughs!
           this.fx.spawnBurst(clickX, clickY, 'whiff');
           this.streak = 0;
           this._updateHUD();
-          const missedIdx = Number(cellEl.dataset.index);
-          const targetMole = cellEl.querySelector('.mole-character');
-          this._triggerLaugh(missedIdx, targetMole, 'troll');
+
+          const missedIdx = cellEl ? Number(cellEl.dataset.index) : this._findClosestHoleIndex(clickX, clickY);
+          const targetMole = this.board.children[missedIdx].querySelector('.mole-character');
+          this._triggerMoleWithCard(missedIdx, targetMole, 'troll');
         }
       }
 
       _knockoutMole(index, moleEl, type, x, y, isChainZap = false) {
         clearTimeout(this.activeHoles.get(index));
         document.getElementById(`hp-${index}`).classList.add('hidden');
+        this.board.children[index].classList.remove('card-active');
 
         moleEl.dataset.state = 'whacked';
         moleEl.innerHTML = getMoleArchetypeSVG(type, 'whacked');
-        moleEl.classList.remove('laughing', 'boss-hit', 'frozen-mole');
+        moleEl.classList.remove('laughing-with-card', 'boss-hit', 'frozen-mole');
         moleEl.classList.add('whacked');
 
         this.streak++;
@@ -1807,7 +1881,7 @@
 
         const malletCfg = MALLETS[this.equippedMallet];
         const feverMult = this.streak >= 5 ? 2 : 1;
-        const pts = Math.round(CONFIG.archetypes[type].points * feverMult * malletCfg.scoreMult);
+        const pts = Math.round((CONFIG.archetypes[type]?.points || 100) * feverMult * malletCfg.scoreMult);
         this.score += pts;
 
         this.audio.playMalletHit(this.equippedMallet);
@@ -1825,52 +1899,39 @@
         }, 240);
       }
 
-      _triggerLaugh(index, moleEl, type = 'troll') {
+      // Mole emerges from the hole holding the Dialogue Placard in its paws, laughs, and goes back into the hole!
+      _triggerMoleWithCard(index, moleEl, type = 'troll') {
         clearTimeout(this.activeHoles.get(index));
         document.getElementById(`hp-${index}`).classList.add('hidden');
 
+        const cell = this.board.children[index];
+        cell.classList.add('card-active');
+
+        const safeType = type === 'tnt' ? 'troll' : type;
+        const cardData = this._drawNextInsultCard();
+
         moleEl.dataset.state = 'laughing';
-        moleEl.dataset.type = type === 'tnt' ? 'troll' : type;
+        moleEl.dataset.type = safeType;
         moleEl.dataset.hp = 1;
-        moleEl.innerHTML = getMoleArchetypeSVG(moleEl.dataset.type, 'laughing');
+        moleEl.dataset.cardProtectUntil = performance.now() + 600;
+
+        moleEl.innerHTML = getMoleArchetypeSVG(safeType, 'laughing', 1, cardData);
         moleEl.classList.remove('whacked', 'boss-hit');
-        moleEl.classList.add('up', 'laughing');
+        moleEl.classList.add('up', 'laughing-with-card');
 
         this.audio.playLaughChuckle();
-        this._showComicTaunt(index);
 
-        const leaveTimer = setTimeout(() => {
-          moleEl.classList.remove('up', 'laughing');
+        // After holding the card up and laughing, smoothly slide back down into the hole!
+        const retreatTimer = setTimeout(() => {
+          moleEl.classList.remove('up', 'laughing-with-card');
           moleEl.dataset.state = 'down';
-          this.activeHoles.delete(index);
-        }, CONFIG.laughDuration);
+          setTimeout(() => {
+            cell.classList.remove('card-active');
+            this.activeHoles.delete(index);
+          }, 280);
+        }, CONFIG.cardHoldDuration);
 
-        this.activeHoles.set(index, leaveTimer);
-      }
-
-      _showComicTaunt(index) {
-        const now = performance.now();
-        if (now - this.lastTauntTime < CONFIG.tauntCooldown) return;
-        this.lastTauntTime = now;
-
-        if (this.insultBag.length === 0) {
-          this.insultBag = [...INSULTS].sort(() => Math.random() - 0.5);
-        }
-        const insult = this.insultBag.pop();
-
-        const cell = this.board.children[index];
-        const existing = cell.querySelector('.comic-taunt');
-        if (existing) existing.remove();
-
-        const bubble = document.createElement('div');
-        bubble.className = 'comic-taunt';
-        bubble.innerHTML = `
-          <div class="comic-taunt-inner">
-            <span class="comic-header">${insult.header}</span>
-            <span class="comic-body">${insult.text}</span>
-          </div>`;
-        cell.appendChild(bubble);
-        setTimeout(() => bubble.remove(), CONFIG.laughDuration);
+        this.activeHoles.set(index, retreatTimer);
       }
 
       _showFloatingText(index, text, color) {
@@ -1917,9 +1978,10 @@
         startBtn.disabled = false;
 
         this.board.querySelectorAll('.mole-character').forEach((m) => {
-          m.classList.remove('up', 'laughing', 'whacked', 'boss-hit', 'frozen-mole');
+          m.classList.remove('up', 'laughing-with-card', 'whacked', 'boss-hit', 'frozen-mole');
           m.dataset.state = 'down';
         });
+        this.board.querySelectorAll('.hole-cell').forEach((c) => c.classList.remove('card-active'));
 
         const earnedCoins = Math.max(50, Math.round(this.score * 0.25));
         this.coins += earnedCoins;
